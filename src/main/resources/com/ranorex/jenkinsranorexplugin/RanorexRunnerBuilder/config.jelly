@@ -7,7 +7,7 @@
     <!-- Advanced Section -->
     <f:advanced>
         <!--Ranorex Run Conficuration-->
-        <f:entry title="${%Ranorex run configuration}" field="rxRunConfiguration">
+        <f:entry title="${%Ranorex Run Configuration}" field="rxRunConfiguration">
             <f:textbox/>
         </f:entry>
         <!--Ranorex Report-->
