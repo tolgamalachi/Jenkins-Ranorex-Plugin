@@ -2,7 +2,7 @@
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
 
     <f:section title="${%Ranorex Integration}">
-        <f:entry title="${%Summarize arguments in Console output}" field="useSummarize">
+        <f:entry title="${%Summarize arguments in Console Output}" field="useSummarize">
             <f:checkbox/>
         </f:entry>
     </f:section>
