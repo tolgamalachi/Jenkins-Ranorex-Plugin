@@ -13,11 +13,11 @@
         <!--Ranorex Report-->
         <!--Ranorex Report Directory-->
         <f:block>
-            <f:entry title="${%Ranorex report directory}" field="rxReportDirectory">
+            <f:entry title="${%Ranorex Report directory}" field="rxReportDirectory">
                 <f:textbox/>
             </f:entry>
             <!--Ranorex Report File-->
-            <f:entry title="${%Ranorex report file name}" field="rxReportFile">
+            <f:entry title="${%Ranorex Report file name}" field="rxReportFile">
                 <f:textbox/>
             </f:entry>
             <!--Ranorex Report File Extension-->
