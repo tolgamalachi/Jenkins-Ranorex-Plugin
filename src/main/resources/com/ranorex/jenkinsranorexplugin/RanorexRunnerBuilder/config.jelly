@@ -40,7 +40,7 @@
         <!-- Ranorex Zipped Report with optional Block-->
         <f:block>
             <f:optionalBlock name="RanorexRunnerBuilder.rxZippedReport" field="rxZippedReport"
-                             title="${%Compressed copy of Ranorex report}" inline="true">
+                             title="${%Compressed copy of Ranorex Report}" inline="true">
                 <f:entry title="${%Compressed report directory}" field="rxZippedReportDirectory">
                     <f:textbox/>
                 </f:entry>
