@@ -1,11 +1,20 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+
     <!-- Ranorex Test Suite File-->
-    <f:entry title="${%Ranorex Test Suite file}" field="rxTestSuiteFilePath">
-        <f:textbox name="RanorexRunnerBuilder.rxTestSuiteFilePath"/>
+    <f:entry title="${%Ranorex Test Executable}" field="rxTestExecutablePath">
+        <f:textbox name="RanorexRunnerBuilder.rxTestExecutablePath"/>
     </f:entry>
+
+    <!-- Ranorex Test Suite File-->
+    <f:entry title="${%Ranorex Test Suite}" field="rxTestSuite">
+        <f:textbox name="RanorexRunnerBuilder.rxTestSuite"/>
+    </f:entry>
+
     <!-- Advanced Section -->
     <f:advanced>
+
+
         <!--Ranorex Run Conficuration-->
         <f:entry title="${%Ranorex Run Configuration}" field="rxRunConfiguration">
             <f:textbox/>
@@ -32,19 +41,23 @@
         </f:block>
 
         <!-- JUnit Report-->
-        <f:entry title="${%JUnit-compatible report}" description="Available in Ranorex 7.0 and later.">
-            <f:checkbox name="RanorexRunnerBuilder.rxJUnitReport" value="${instance.rxJUnitReport}"
-                        checked="${instance.rxJUnitReport}"/>
-        </f:entry>
-
-        <!-- Ranorex Zipped Report with optional Block-->
         <f:block>
-            <f:optionalBlock name="RanorexRunnerBuilder.rxZippedReport" field="rxZippedReport"
+            <f:optionalBlock name="RanorexRunnerBuilder.rxJUnitReport"
+                             field="rxJUnitReport"
+                             title="${%JUnit-compatible Report}"
+                             inline="true">
+            </f:optionalBlock>
+        </f:block>
+
+
+        <!-- Ranorex Compressed Report with optional Block-->
+        <f:block>
+            <f:optionalBlock name="RanorexRunnerBuilder.rxCompressedReport" field="rxCompressedReport"
                              title="${%Compressed copy of Ranorex Report}" inline="true">
-                <f:entry title="${%Compressed report directory}" field="rxZippedReportDirectory">
+                <f:entry title="${%Compressed report directory}" field="rxCompressedReportDirectory">
                     <f:textbox/>
                 </f:entry>
-                <f:entry title="${%Compressed report file name}" field="rxZippedReportFile">
+                <f:entry title="${%Compressed report file name}" field="rxCompressedReportFile">
                     <f:textbox/>
                 </f:entry>
             </f:optionalBlock>
@@ -52,7 +65,9 @@
 
         <!--TestRail Integration-->
         <f:block>
-            <f:optionalBlock name="RanorexRunnerBuilder.rxTestRail" field="rxTestRail" title="${%TestRail integration}"
+            <f:optionalBlock name="RanorexRunnerBuilder.useRxTestRail"
+                             field="useRxTestRail"
+                             title="${%TestRail integration}"
                              inline="true">
                 <!--Test Rail User-->
                 <f:entry title="${%Test Rail User}" field="rxTestRailUser">
