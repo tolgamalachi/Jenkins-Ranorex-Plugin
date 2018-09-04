@@ -8,6 +8,7 @@ package com.ranorex.jenkinsranorexplugin.util;
 import hudson.FilePath;
 
 import java.io.File;
+import java.security.InvalidParameterException;
 
 /**
  * @author mstoegerer
@@ -32,27 +33,26 @@ public abstract class FileUtil {
 
         String[] splitPath = StringUtil.splitPath(ExecutableFile);
         return splitPath[splitPath.length - 1];
-
     }
 
     /**
      * Get the absolute path to the Ranorex Test Suite file
      *
      * @param jenkinsDirectory The current workspace for the Jenkins Job
-     * @param testSuiteFile    The path to the Ranorex Test Suite
+     * @param RanorexTestFile    The path to the Ranorex Test Suite
      * @return The directory in which the Ranorex Test Suite is located
      */
-    public static FilePath getRanorexWorkingDirectory(FilePath jenkinsDirectory, String testSuiteFile) {
-        String[] splitName = StringUtil.splitPath(testSuiteFile);
+    public static FilePath getRanorexWorkingDirectory(FilePath jenkinsDirectory, String RanorexTestFile) {
+        String[] splitName = StringUtil.splitPath(RanorexTestFile);
         StringBuilder directory = new StringBuilder();
 
         //If the Test Suite Path is relative, append it to the Jenkins Workspace
-        if (! isAbsolutePath(testSuiteFile)) {
+        if (! isAbsolutePath(RanorexTestFile)) {
             directory.append(jenkinsDirectory.getRemote());
         }
 
         for (String name : splitName) {
-            if (! ".".equals(name) && ! name.contains(".rxtst")) {
+            if (! ".".equals(name) && ! name.contains(".exe")) {
                 if (name.toCharArray().length > 1 && (name.toCharArray())[1] == ':') {
                     directory.append(name);
                 } else {
@@ -142,5 +142,14 @@ public abstract class FileUtil {
             }
         }
         return fileName;
+    }
+
+
+    public static String getFile(String fullPath) {
+        if (! StringUtil.isNullOrSpace(fullPath)) {
+            File f = new File(fullPath);
+            return f.getName();
+        }
+        throw new InvalidParameterException("Path is not valid");
     }
 }
