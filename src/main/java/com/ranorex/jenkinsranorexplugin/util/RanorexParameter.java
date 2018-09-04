@@ -35,7 +35,7 @@ public class RanorexParameter extends BaseArgument {
         try {
             splitParam[0] = tryExtractFlag(parameterString);
         } catch (InvalidParameterException e) {
-            System.out.println("[INFO] [RanorexParameter]: Method tryExtractFlag() threw an InvalidParameterException \n\t" + e.getMessage() + "\n\tParameterflag 'pa' will be used as default");
+            //System.out.println("[INFO] [RanorexParameter]: Method tryExtractFlag() threw an InvalidParameterException \n\t" + e.getMessage() + "\n\tParameterflag 'pa' will be used as default");
             splitParam[0] = "pa";
         }
         if (containsValidNameValuePair(parameterString)) {
