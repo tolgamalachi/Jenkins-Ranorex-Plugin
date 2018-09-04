@@ -10,6 +10,7 @@ public class CmdArgument extends BaseArgument {
             "listconfigparams", "lcp",
             "reportfile", "rf",
             "zipreport", "zr",
+            "zipreportfile", "zrf",
             "junit", "ju",
             "listglobalparams", "lp",
             "listtestcaseparams", "ltcpa",
