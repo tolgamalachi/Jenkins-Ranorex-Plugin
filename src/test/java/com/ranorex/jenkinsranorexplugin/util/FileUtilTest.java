@@ -4,6 +4,7 @@ import hudson.FilePath;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.security.InvalidParameterException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -274,5 +275,27 @@ class FileUtilTest {
     void IgnoreFileExtension_InvalidFileName_NULL() {
         String actualResult = FileUtil.removeFileExtension("ThisFileHasNoExtension");
         assertEquals("ThisFileHasNoExtension", actualResult);
+    }
+
+
+    @Test
+    void getFile_fullPath_ValidFilename() {
+        String result = FileUtil.getFile("C:\\Test\\Test.rxtst");
+        assertEquals("Test.rxtst", result);
+    }
+    @Test
+    void getFile_fullPath2_ValidFilename() {
+        String result = FileUtil.getFile("C:\\Test\\Test");
+        assertEquals("Test", result);
+    }
+
+    @Test
+    void getFile_null_ValidFilename() {
+        try {
+            String result = FileUtil.getFile(null);
+        } catch (InvalidParameterException e) {
+            assertEquals("Path is not valid", e.getMessage());
+        }
+
     }
 }
