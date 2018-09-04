@@ -58,6 +58,7 @@ public class RanorexParameter extends BaseArgument {
         return equalPosition > 0 && equalPosition < parameterString.length() - 1;
     }
 
+    @SuppressWarnings ("CatchMayIgnoreException")
     public static boolean isValid(String parameterString) {
         String flag = "";
         try {
