@@ -144,7 +144,11 @@ public abstract class FileUtil {
         return fileName;
     }
 
-
+    /**
+     * Gets only the filename from a path.
+      * @param fullPath Path to File
+     * @return Filename
+     */
     public static String getFile(String fullPath) {
         if (! StringUtil.isNullOrSpace(fullPath)) {
             File f = new File(fullPath);
