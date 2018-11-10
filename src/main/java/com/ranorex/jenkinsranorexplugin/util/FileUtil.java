@@ -38,17 +38,17 @@ public abstract class FileUtil {
     /**
      * Get the absolute path to the Ranorex Test Suite file
      *
-     * @param jenkinsDirectory The current workspace for the Jenkins Job
-     * @param RanorexTestFile    The path to the Ranorex Test Suite
+     * @param jenkinsWorkspace The current workspace for the Jenkins Job
+     * @param rxTestExecutablePath The path to the Ranorex Test Suite
      * @return The directory in which the Ranorex Test Suite is located
      */
-    public static FilePath getRanorexWorkingDirectory(FilePath jenkinsDirectory, String RanorexTestFile) {
-        String[] splitName = StringUtil.splitPath(RanorexTestFile);
+    public static FilePath getRanorexWorkingDirectory(FilePath jenkinsWorkspace, String rxTestExecutablePath) {
+        String[] splitName = StringUtil.splitPath(rxTestExecutablePath);
         StringBuilder directory = new StringBuilder();
 
         //If the Test Suite Path is relative, append it to the Jenkins Workspace
-        if (! isAbsolutePath(RanorexTestFile)) {
-            directory.append(jenkinsDirectory.getRemote());
+        if (! isAbsolutePath(rxTestExecutablePath)) {
+            directory.append(jenkinsWorkspace.getRemote());
         }
 
         for (String name : splitName) {
