@@ -17,17 +17,17 @@
 
         <!--Ranorex Run Conficuration-->
         <f:entry title="${%Ranorex Run Configuration}" field="rxRunConfiguration">
-            <f:textbox/>
+            <f:textbox name="RanorexRunnerBuilder.rxRunConfiguration"/>
         </f:entry>
         <!--Ranorex Report-->
         <!--Ranorex Report Directory-->
         <f:block>
             <f:entry title="${%Ranorex Report directory}" field="rxReportDirectory">
-                <f:textbox/>
+                <f:textbox name="RanorexRunnerBuilder.rxReportDirectory"/>
             </f:entry>
             <!--Ranorex Report File-->
             <f:entry title="${%Ranorex Report file name}" field="rxReportFile">
-                <f:textbox/>
+                <f:textbox name="RanorexRunnerBuilder.rxReportFile"/>
             </f:entry>
             <!--Ranorex Report File Extension-->
             <f:entry title="${%Report file extension}" field="rxReportExtension">
@@ -55,10 +55,10 @@
             <f:optionalBlock name="RanorexRunnerBuilder.rxCompressedReport" field="rxCompressedReport"
                              title="${%Compressed copy of Ranorex Report}" inline="true">
                 <f:entry title="${%Compressed report directory}" field="rxCompressedReportDirectory">
-                    <f:textbox/>
+                    <f:textbox name="RanorexRunnerBuilder.rxCompressedReportDirectory"/>
                 </f:entry>
                 <f:entry title="${%Compressed report file name}" field="rxCompressedReportFile">
-                    <f:textbox/>
+                    <f:textbox name="RanorexRunnerBuilder.rxCompressedReportFile"/>
                 </f:entry>
             </f:optionalBlock>
         </f:block>
@@ -71,7 +71,7 @@
                              inline="true">
                 <!--Test Rail User-->
                 <f:entry title="${%Test Rail User}" field="rxTestRailUser">
-                    <f:textbox/>
+                    <f:textbox name="RanorexRunnerBuilder.rxTestRailUser"/>
                 </f:entry>
                 <!--Test Rail Password-->
                 <f:entry title="${%Test Rail Password}" field="rxTestRailPassword">
@@ -79,11 +79,11 @@
                 </f:entry>
                 <!--Test Rail Run ID-->
                 <f:entry title="${%Test Rail Run ID}" field="rxTestRailRID">
-                    <f:textbox/>
+                    <f:textbox name="RanorexRunnerBuilder.rxTestRailRID"/>
                 </f:entry>
                 <!--Test Rail Run Name-->
                 <f:entry title="${%Test Rail Run Name}" field="rxTestRailRunName">
-                    <f:textbox/>
+                    <f:textbox name="RanorexRunnerBuilder.rxTestRailRunName"/>
                 </f:entry>
             </f:optionalBlock>
         </f:block>
