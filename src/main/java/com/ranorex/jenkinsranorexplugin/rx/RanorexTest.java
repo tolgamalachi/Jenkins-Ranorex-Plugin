@@ -9,12 +9,17 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 
 public class RanorexTest {
     private File _WorkingDirectory;
     private File _TestExecutable;
     private File _TestSuiteFile;
+    private File _TestSequence;
     private String _RanorexRunConfiguration;
     private RanorexReport _RxReport;
     private Boolean _UseTestRail;
@@ -23,24 +28,48 @@ public class RanorexTest {
     private List<CmdArgument> _CommandLineArguments;
 
 
-    public RanorexTest(String WorkingDirectory, String TestExecutable, String TestSuite) throws FileNotFoundException {
+    public RanorexTest(String WorkingDirectory, String TestExecutable, String TestSuite)
+            throws FileNotFoundException, InvalidParameterException {
         this._WorkingDirectory = new File(WorkingDirectory);
-        if (! _WorkingDirectory.isDirectory()) {
-            throw new InvalidParameterException("'" + _WorkingDirectory.getPath() + "' is not a valid directory path");
+        if (! this._WorkingDirectory.isDirectory()) {
+            throw new InvalidParameterException("'" + this._WorkingDirectory.getPath() + "' is not a valid directory path");
         }
-        this._TestExecutable = new File(TestExecutable);
-        if (! _TestExecutable.exists()) {
-            throw new FileNotFoundException("File '" + _TestExecutable.getName() + "' does not exist");
+
+        if (StringUtil.isNullOrSpace(TestExecutable)) {
+            throw new InvalidParameterException("Test executable must not be empty");
         }
-        this._TestSuiteFile = new File(_TestExecutable.getPath(), TestSuite);
-        if (! _TestSuiteFile.exists()) {
-            throw new FileNotFoundException("File '" + _TestSuiteFile.getName() + "' does not exist");
+
+        this._TestExecutable = new File(this._WorkingDirectory, TestExecutable);
+        if (! this._TestExecutable.exists()) {
+            throw new FileNotFoundException("File '" + this._TestExecutable.getPath() + "' does not exist");
+        }
+
+        //If no Test Suite is specified, Execute Test using the following prio order
+        // 1. Run Ranorex Test Sequence file if exists
+            //a. If multiple Ranorex Test Sequence file exist, use the one with the same name as the Ranorex Test exe
+        // 2. Run Ranorex Test Suite with the Same name as the Ranorex Test exe
+        // 3. Run Ranorex Test Suite with any name
+        if (StringUtil.isNullOrSpace(TestSuite)) {
+            //Check if TestSequence does exist
+            //TODO: Extract into separate method
+            Collection<File> files = FileUtils.listFiles(_WorkingDirectory, new WildcardFileFilter("*.rxsqc"), null);
+            if (files.size() > 1) {
+                System.out.println("Multiple sequence files found. Using the default");
+            } else if (files.size() == 0) {
+                System.out.println("No Test Sequence files found. Using Default Test Suite instead");
+            } else if (files.size() == 1) {
+                System.out.println("Single sequence found: '" + files.toArray()[0].toString() + "'");
+            }
+        } else {
+            this._TestSuiteFile = new File(this._TestExecutable.getParent(), TestSuite);
+            if (! this._TestSuiteFile.exists()) {
+                throw new FileNotFoundException("File '" + this._TestSuiteFile.getName() + "' does not exist");
+            }
         }
         this._UseTestRail = false;
         this._RanorexParameters = new ArrayList<>();
         this._CommandLineArguments = new ArrayList<>();
     }
-
 
     public void addGlobalParameter(RanorexParameter param) {
         this._RanorexParameters.add(param);
@@ -50,7 +79,6 @@ public class RanorexTest {
         this._CommandLineArguments.add(arg);
     }
 
-
     public String getWorkingDirectoryString() {
         return this._WorkingDirectory.toString();
     }
@@ -59,11 +87,11 @@ public class RanorexTest {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Working Directory:\t").append(this.getWorkingDirectoryString()).append("\n");
-        sb.append("Test Executable File:\t").append(this._TestExecutable.toString()).append("\n");
+        sb.append("Test Executable File:\t").append(this._TestExecutable.getName()).append("\n");
 
         sb.append("Test Suite File:\t");
-        if (! StringUtil.isNullOrSpace(this._TestSuiteFile.toString())) {
-            sb.append(this._TestSuiteFile.toString()).append("\n");
+        if (this._TestSuiteFile != null) {
+            sb.append(this._TestSuiteFile.getName()).append("\n");
         } else {
             sb.append("No Test Suite File selected!\n");
         }
@@ -74,11 +102,11 @@ public class RanorexTest {
         } else {
             sb.append("No Runconfiguration entered\n");
         }
-
-        sb.append(_RxReport);
-
+        if (this._RxReport != null) {
+            sb.append(_RxReport);
+        }
         sb.append("Sync with TestRail:\t").append(this._UseTestRail).append("\n");
-        if (this._UseTestRail) {
+        if (this._UseTestRail && this._TestRail != null) {
             sb.append(_TestRail);
         }
         sb.append("\nGlobal Parameters:\n");
@@ -105,24 +133,26 @@ public class RanorexTest {
         ArgumentListBuilder alb = new ArgumentListBuilder("cmd.exe", "/C");
 
         //Test Exe
-        if (! StringUtil.isNullOrSpace(this._TestExecutable.toString()))
+        if (this._TestExecutable != null && this._TestExecutable.exists())
             alb.add(this._TestExecutable.toString());
         //Test Suite
-        if (! StringUtil.isNullOrSpace(this._TestSuiteFile.toString()))
+        if (this._TestSuiteFile != null && this._TestSuiteFile.exists())
             alb.add("/ts:" + this._TestSuiteFile.toString());
         //Run Configuration
         if (! StringUtil.isNullOrSpace(this._RanorexRunConfiguration))
             alb.add("/runconfig:" + this._RanorexRunConfiguration);
         //Report
-        alb.add("/reportfile:" + this._RxReport.getFullReportArgument());
-        //Compressed Report
-        if (this._RxReport.getCompressedReport()) {
-            alb.add("/zipreport");
-            alb.add("/zipreportfile:" + this._RxReport.getFullCompressedReportArgument());
-        }
-        //JUnit Report
-        if (this._RxReport.getJunitReport()) {
-            alb.add("/junit");
+        if (this._RxReport != null) {
+            alb.add("/reportfile:" + this._RxReport.getFullReportArgument());
+            //Compressed Report
+            if (this._RxReport.getCompressedReport()) {
+                alb.add("/zipreport");
+                alb.add("/zipreportfile:" + this._RxReport.getFullCompressedReportArgument());
+            }
+            //JUnit Report
+            if (this._RxReport.getJunitReport()) {
+                alb.add("/junit");
+            }
         }
         //Test Rail
         if (this._UseTestRail) {
@@ -159,18 +189,15 @@ public class RanorexTest {
     }*/
 
     public void setRanorexRunConfiguration(String ranorexRunConfiguration) {
-        _RanorexRunConfiguration = ranorexRunConfiguration;
+        this._RanorexRunConfiguration = ranorexRunConfiguration;
     }
 
     public void setRxReport(RanorexReport rxReport) {
-        _RxReport = rxReport;
+        this._RxReport = rxReport;
     }
 
     public void setTestRail(TestRailIntegration testRail) {
-        _TestRail = testRail;
-    }
-
-    public void setUseTestRail(Boolean useTestRail) {
-        _UseTestRail = useTestRail;
+        this._UseTestRail = true;
+        this._TestRail = testRail;
     }
 }

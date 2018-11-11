@@ -3,25 +3,27 @@ package com.ranorex.jenkinsranorexplugin.rx;
 import com.ranorex.jenkinsranorexplugin.util.FileUtil;
 import com.ranorex.jenkinsranorexplugin.util.StringUtil;
 
+import java.io.File;
+import java.security.InvalidParameterException;
+
 public class RanorexReport {
     private static final String ZIPPED_REPORT_EXTENSION = "rxzlog";
-    private String ReportDirectory;
+    private File ReportDirectory;
     private String ReportName;
     private String ReportExtension;
     private Boolean JunitReport;
     private Boolean CompressedReport;
-    private String CompressedReportDirectory;
+    private File CompressedReportDirectory;
     private String CompressedReportName;
 
     public RanorexReport(String RanorexWorkingDirectory, String ReportDirectory, String ReportName, String ReportExtension, Boolean Junit, Boolean CompressedReport, String CompressedReportDir, String CompressedReportName) {
 
         if (! StringUtil.isNullOrSpace(ReportDirectory)) {
-            this.ReportDirectory = FileUtil.getAbsoluteReportDirectory(RanorexWorkingDirectory, ReportDirectory);
+            this.ReportDirectory = new File(FileUtil.getAbsoluteReportDirectory(RanorexWorkingDirectory, ReportDirectory));
         } else {
-            this.ReportDirectory = RanorexWorkingDirectory;
+            this.ReportDirectory = new File(RanorexWorkingDirectory);
         }
-
-        this.ReportDirectory = StringUtil.appendBackslash(this.ReportDirectory);
+        //this.ReportDirectory = StringUtil.appendBackslash(this.ReportDirectory);
 
         if (! StringUtil.isNullOrSpace(ReportName)) {
             this.ReportName = FileUtil.removeFileExtension(ReportName);
@@ -33,11 +35,12 @@ public class RanorexReport {
         this.CompressedReport = CompressedReport;
         if (this.CompressedReport) {
             if (! StringUtil.isNullOrSpace(CompressedReportDir)) {
-                this.CompressedReportDirectory = FileUtil.getAbsoluteReportDirectory(RanorexWorkingDirectory, CompressedReportDir);
+                this.CompressedReportDirectory = new File(FileUtil.getAbsoluteReportDirectory(RanorexWorkingDirectory, CompressedReportDir));
             } else {
-                this.CompressedReportDirectory = RanorexWorkingDirectory;
+                this.CompressedReportDirectory = new File(RanorexWorkingDirectory);
             }
-            this.CompressedReportDirectory = StringUtil.appendBackslash(this.CompressedReportDirectory);
+
+            //this.CompressedReportDirectory = StringUtil.appendBackslash(this.CompressedReportDirectory);
             if (! StringUtil.isNullOrSpace(CompressedReportName)) {
                 this.CompressedReportName = FileUtil.removeFileExtension(CompressedReportName);
             } else {
@@ -68,11 +71,11 @@ public class RanorexReport {
     //Getter And Setter
 
     public String getFullReportArgument() {
-        return this.ReportDirectory + this.ReportName + "." + this.ReportExtension;
+        return this.ReportDirectory.getPath() + "\\" + this.ReportName + "." + this.ReportExtension;
     }
 
     public String getFullCompressedReportArgument() {
-        return this.CompressedReportDirectory + this.CompressedReportName + "." + ZIPPED_REPORT_EXTENSION;
+        return this.CompressedReportDirectory.getPath()+"\\" + this.CompressedReportName + "." + ZIPPED_REPORT_EXTENSION;
     }
 
     public Boolean getJunitReport() {

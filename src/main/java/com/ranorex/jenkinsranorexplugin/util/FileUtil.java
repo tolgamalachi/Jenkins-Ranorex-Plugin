@@ -36,32 +36,20 @@ public abstract class FileUtil {
     }
 
     /**
-     * Get the absolute path to the Ranorex Test Suite file
+     * Get the absolute path to the Ranorex Test Exe file
      *
-     * @param jenkinsWorkspace The current workspace for the Jenkins Job
-     * @param rxTestExecutablePath The path to the Ranorex Test Suite
-     * @return The directory in which the Ranorex Test Suite is located
+     * @param jenkinsWorkspace     The current workspace for the Jenkins Job
+     * @param rxTestExecutablePath The path to the Ranorex Test Exe
+     * @return The directory in which the Ranorex Test Exe is located
      */
     public static FilePath getRanorexWorkingDirectory(FilePath jenkinsWorkspace, String rxTestExecutablePath) {
-        String[] splitName = StringUtil.splitPath(rxTestExecutablePath);
-        StringBuilder directory = new StringBuilder();
-
+        File rxTestExe = new File(rxTestExecutablePath);
         //If the Test Suite Path is relative, append it to the Jenkins Workspace
-        if (! isAbsolutePath(rxTestExecutablePath)) {
-            directory.append(jenkinsWorkspace.getRemote());
+        if (isAbsolutePath(rxTestExecutablePath)) {
+            return new FilePath(new File(rxTestExe.getParent()));
+        } else {
+            return new FilePath(new File(jenkinsWorkspace.getRemote(), rxTestExe.getParent()));
         }
-
-        for (String name : splitName) {
-            if (! ".".equals(name) && ! name.contains(".exe")) {
-                if (name.toCharArray().length > 1 && (name.toCharArray())[1] == ':') {
-                    directory.append(name);
-                } else {
-                    directory.append("\\").append(name);
-                }
-            }
-        }
-
-        return new FilePath(new File(directory.toString()));
     }
 
     /**
@@ -146,7 +134,8 @@ public abstract class FileUtil {
 
     /**
      * Gets only the filename from a path.
-      * @param fullPath Path to File
+     *
+     * @param fullPath Path to File
      * @return Filename
      */
     public static String getFile(String fullPath) {

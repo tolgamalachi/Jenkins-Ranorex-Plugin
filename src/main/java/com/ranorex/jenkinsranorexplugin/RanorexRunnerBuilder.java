@@ -59,7 +59,7 @@ public class RanorexRunnerBuilder extends Builder {
      * Other Variables
      */
     private RanorexTest rxTest;
-    private String rxExecuteableFile;
+    private String rxExecuteableFileName;
     private String rxWorkingDirectory;
     private ArgumentListBuilder jArguments;
 
@@ -199,61 +199,61 @@ public class RanorexRunnerBuilder extends Builder {
         boolean r = false;
 
         if (! StringUtil.isNullOrSpace(rxTestExecutablePath)) {
-
-            rxWorkingDirectory = FileUtil.getRanorexWorkingDirectory(build.getWorkspace(), rxTestExecutablePath).getRemote();
-            rxWorkingDirectory = StringUtil.appendBackslash(rxWorkingDirectory);
-            rxExecuteableFile = FileUtil.getFile(rxTestExecutablePath);
-
             try {
-                rxTest = new RanorexTest(rxWorkingDirectory, rxExecuteableFile, rxTestSuite);
-                rxTest.setRanorexRunConfiguration(rxRunConfiguration);
+                rxWorkingDirectory = FileUtil.getRanorexWorkingDirectory(build.getWorkspace(), rxTestExecutablePath).getRemote();
+                rxExecuteableFileName = FileUtil.getFile(rxTestExecutablePath);
+
+                rxTest = new RanorexTest(rxWorkingDirectory, rxExecuteableFileName, rxTestSuite);
+
+                if (! StringUtil.isNullOrSpace(rxRunConfiguration)) {
+                    rxTest.setRanorexRunConfiguration(rxRunConfiguration);
+                }
+
+                RanorexReport rxReport = new RanorexReport(rxWorkingDirectory,
+                        rxReportDirectory, rxReportFile, rxReportExtension, rxJUnitReport,
+                        rxCompressedReport, rxCompressedReportDirectory, rxCompressedReportFile);
+
+                rxTest.setRxReport(rxReport);
+
+                if (useRxTestRail) {
+                    TestRailIntegration rxTestRail = new TestRailIntegration(rxTestRailUser, rxTestRailPassword,
+                            rxTestRailRID, rxTestRailRunName);
+                    rxTest.setTestRail(rxTestRail);
+                }
+
+                if (! StringUtil.isNullOrSpace(rxGlobalParameter)) {
+                    for (String param : StringUtil.splitBy(rxGlobalParameter, ARGUMENT_SEPARATOR)) {
+                        try {
+                            RanorexParameter rxParam = new RanorexParameter(param);
+                            rxParam.trim();
+                            rxTest.addGlobalParameter(rxParam);
+                        } catch (Exception e) {
+                            System.out.println("[INFO] [Ranorex] Parameter '" + param + "' will be ignored");
+                            LOGGER.println("[INFO] [Ranorex] Parameter '" + param + "' will be ignored");
+                        }
+                    }
+                }
+
+                if (! StringUtil.isNullOrSpace(cmdLineArgs)) {
+                    for (String argument : StringUtil.splitBy(cmdLineArgs, ARGUMENT_SEPARATOR)) {
+                        try {
+                            CmdArgument arg = new CmdArgument(argument);
+                            rxTest.addCommandLineArgument(arg);
+                        } catch (Exception e) {
+                            System.out.println("[INFO] [Ranorex] Argument '" + argument + "' will be ignored ");
+                            LOGGER.println("[INFO] [Ranorex] Argument '" + argument + "' will be ignored ");
+                        }
+                    }
+                }
+                // Summarize Output
+                if (getDescriptor().isUseSummarize()) {
+                    LOGGER.println("\n*************Start of Ranorex Summary*************");
+                    LOGGER.println("Current Plugin version:\t" + getClass().getPackage().getImplementationVersion());
+                    LOGGER.print(rxTest);
+                    LOGGER.println("*************End of Ranorex Summary*************\n");
+                }
             } catch (Exception e) {
                 LOGGER.println("[ERROR]: " + e.getMessage());
-            }
-
-            RanorexReport rxReport = new RanorexReport(rxWorkingDirectory,
-                    rxReportDirectory, rxReportFile, rxReportExtension, rxJUnitReport,
-                    rxCompressedReport, rxCompressedReportDirectory, rxCompressedReportFile);
-
-            rxTest.setRxReport(rxReport);
-
-            rxTest.setUseTestRail(useRxTestRail);
-            if (useRxTestRail) {
-                TestRailIntegration rxTestRail = new TestRailIntegration(rxTestRailUser, rxTestRailPassword, rxTestRailRID, rxTestRailRunName);
-                rxTest.setTestRail(rxTestRail);
-            }
-
-            if (! StringUtil.isNullOrSpace(rxGlobalParameter)) {
-
-                for (String param : StringUtil.splitBy(rxGlobalParameter, ARGUMENT_SEPARATOR)) {
-                    try {
-                        RanorexParameter rxParam = new RanorexParameter(param);
-                        rxParam.trim();
-                        rxTest.addGlobalParameter(rxParam);
-                    } catch (Exception e) {
-                        System.out.println("[INFO] [Ranorex] Parameter '" + param + "' will be ignored");
-                        LOGGER.println("[INFO] [Ranorex] Parameter '" + param + "' will be ignored");
-                    }
-                }
-            }
-
-            if (! StringUtil.isNullOrSpace(cmdLineArgs)) {
-                for (String argument : StringUtil.splitBy(cmdLineArgs, ARGUMENT_SEPARATOR)) {
-                    try {
-                        CmdArgument arg = new CmdArgument(argument);
-                        rxTest.addCommandLineArgument(arg);
-                    } catch (Exception e) {
-                        System.out.println("[INFO] [Ranorex] Argument '" + argument + "' will be ignored ");
-                        LOGGER.println("[INFO] [Ranorex] Argument '" + argument + "' will be ignored ");
-                    }
-                }
-            }
-            // Summarize Output
-            if (getDescriptor().isUseSummarize()) {
-                LOGGER.println("\n*************Start of Ranorex Summary*************");
-                LOGGER.println("Current Plugin version:\t" + getClass().getPackage().getImplementationVersion());
-                LOGGER.print(rxTest);
-                LOGGER.println("*************End of Ranorex Summary*************\n");
             }
             jArguments = rxTest.toExecutionArguments();
             r = exec(build, launcher, listener, env); // Start the given exe file with all arguments added before

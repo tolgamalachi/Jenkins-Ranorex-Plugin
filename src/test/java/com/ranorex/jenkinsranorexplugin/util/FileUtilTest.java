@@ -78,10 +78,10 @@ class FileUtilTest {
     @Test
     void GetRanorexWorkingDirectory_RelativeTestSuitePathWithoutSpace_AbsoluteTestSuitePathWithoutSpace() {
         FilePath JenkinsJobDirectory = new FilePath(new File(_absoluteJenkinsJobWithoutSpace));
-        String relativeTestSuitePath = _relativeDirectoryWithDotWithoutSpace + _testSuiteFileWithoutSpace;
+        String relativeTestExePath = _relativeDirectoryWithDotWithoutSpace + _testExeFileWithoutSpace;
         String _absoluteTestSuiteDirectoryInJenkinsWorkSpaceWithoutSpace = _absoluteJenkinsJobWithoutSpace + "\\bin\\Debug";
         FilePath expectedResult = new FilePath(new File(_absoluteTestSuiteDirectoryInJenkinsWorkSpaceWithoutSpace));
-        FilePath actualResult = FileUtil.getRanorexWorkingDirectory(JenkinsJobDirectory, relativeTestSuitePath);
+        FilePath actualResult = FileUtil.getRanorexWorkingDirectory(JenkinsJobDirectory, relativeTestExePath);
         assertEquals(expectedResult, actualResult);
     }
 
@@ -89,21 +89,20 @@ class FileUtilTest {
     @Test
     void GetRanorexWorkingDirectory_RelativeTestSuitePathWithSpace_AbsoluteTestSuitePathWithSpace() {
         FilePath JenkinsJobDirectory = new FilePath(new File(_absoluteJenkinsJobWithSpace));
-        String relativeTestSuitePath = _relativeDirectoryWithDotWithSpace + _testSuiteFileWithSpace;
+        String relativeTestExePath = _relativeDirectoryWithDotWithSpace + _testExeFileWithSpace;
         String _absoluteTestSuiteDirectoryInJenkinsWorkSpaceWithSpace = _absoluteJenkinsJobWithSpace + "\\bin\\De b ug";
         FilePath expectedResult = new FilePath(new File(_absoluteTestSuiteDirectoryInJenkinsWorkSpaceWithSpace));
-        FilePath actualResult = FileUtil.getRanorexWorkingDirectory(JenkinsJobDirectory, relativeTestSuitePath);
+        FilePath actualResult = FileUtil.getRanorexWorkingDirectory(JenkinsJobDirectory, relativeTestExePath);
         assertEquals(expectedResult, actualResult);
 
     }
 
     @Test
     void GetRanorexWorkingDirectory_AbsoluteTestSuitePathWithoutSpace_AbsoluteTestSuitePathWithoutSpace() {
-
         FilePath jenkinsDirectory = new FilePath(new File(_absoluteJenkinsJobWithoutSpace));
-        String absoluteTestSuitePath = _absoluteTestSuiteDirectoryOutsideJenkinsWithoutSpace + _testSuiteFileWithoutSpace;
+        String absoluteTestExePath = _absoluteTestSuiteDirectoryOutsideJenkinsWithoutSpace + _testExeFileWithoutSpace;
         FilePath expectedResult = new FilePath(new File(_absoluteTestSuiteDirectoryOutsideJenkinsWithoutSpace));
-        FilePath actualResult = FileUtil.getRanorexWorkingDirectory(jenkinsDirectory, absoluteTestSuitePath);
+        FilePath actualResult = FileUtil.getRanorexWorkingDirectory(jenkinsDirectory, absoluteTestExePath);
         assertEquals(expectedResult, actualResult);
 
     }
@@ -112,9 +111,9 @@ class FileUtilTest {
     @Test
     void GetRanorexWorkingDirectory_AbsoluteTestSuitePathWithSpace_AbsoluteTestSuitePathWithSpace() {
         FilePath jenkinsDirectory = new FilePath(new File(_absoluteJenkinsJobWithSpace));
-        String absoluteTestSuitePath = _absoluteTestSuiteDirectoryOutsideJenkinsWithSpace + _testSuiteFileWithSpace;
+        String absoluteTestExePath = _absoluteTestSuiteDirectoryOutsideJenkinsWithSpace + _testExeFileWithSpace;
         FilePath expectedResult = new FilePath(new File(_absoluteTestSuiteDirectoryOutsideJenkinsWithSpace));
-        FilePath actualResult = FileUtil.getRanorexWorkingDirectory(jenkinsDirectory, absoluteTestSuitePath);
+        FilePath actualResult = FileUtil.getRanorexWorkingDirectory(jenkinsDirectory, absoluteTestExePath);
         assertEquals(expectedResult, actualResult);
     }
 
