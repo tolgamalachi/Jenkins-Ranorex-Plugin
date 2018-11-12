@@ -82,17 +82,19 @@ public class CmdArgument extends BaseArgument {
         }
         String flag;
         String[] splitArgument;
-
+        if (argumentString.charAt(argumentString.length() - 1) == ':' || argumentString.charAt(argumentString.length() - 1) == '=') {
+            throw new InvalidParameterException("Name or Value must not be null or empty");
+        }
         int separatorPosition = argumentString.indexOf(SEPARATOR);
         if (separatorPosition > 0) {
             int equalsPosition = argumentString.indexOf("=");
             if (equalsPosition < 0) {//No equal sign
                 splitArgument = new String[2];
-                splitArgument[1] = argumentString.substring(separatorPosition + 1, argumentString.length());
+                splitArgument[1] = argumentString.substring(separatorPosition + 1);
             } else {
                 splitArgument = new String[3];
                 splitArgument[1] = argumentString.substring(separatorPosition + 1, equalsPosition);
-                splitArgument[2] = argumentString.substring(equalsPosition + 1, argumentString.length());
+                splitArgument[2] = argumentString.substring(equalsPosition + 1);
             }
             flag = argumentString.substring(0, separatorPosition);
         } else {//no separator
