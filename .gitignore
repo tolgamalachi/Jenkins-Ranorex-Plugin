@@ -25,3 +25,5 @@ TODO.md
 .vscode/
 .idea/
 jenkins-cli\.jar
+
+ranorex-integration\.iml
