@@ -1,558 +1,221 @@
 package com.ranorex.jenkinsranorexplugin.util;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.security.InvalidParameterException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class CmdArgumentTest {
-    //Constuctors
-    @Test
-    void Constructor_EmptyString_ThrowsException() {
+    //Constuctor
+    @DisplayName ("Constructor should throw an IllegalArgumentException if input is null, empty or space")
+    @ParameterizedTest (name = "#{index} Create CmdArgument object with [{arguments}]")
+    @ValueSource (strings = {"", "null", " "})
+    void Constructor_InvalidInput_ShouldThrowException(String input) {
         try {
-            CmdArgument empty = new CmdArgument("");
+            if ("null".equals(input)) {
+                CmdArgument dummy = new CmdArgument(null);
+            } else {
+                CmdArgument dummy = new CmdArgument(input);
+            }
+            assertTrue(false);
         } catch (IllegalArgumentException e) {
             assertEquals("Argument must be not null or empty!", e.getMessage());
         }
     }
 
-    @Test
-    void Constructor_Null_ThrowsException() {
+    @DisplayName ("Constructor should throw an InvalidParameterException if flags are on the ignore list")
+    @ParameterizedTest (name = "#{index} Create CmdArgument object with [{0}]")
+    @ValueSource (strings = {"/param:test", "param:test", "param", "/param", "/param:test=value", "param:test=value", "/pa", "pa"})
+    void Constructor_IgnoredArgumentFlag_ThrowsException(String input) {
         try {
-            CmdArgument empty = new CmdArgument(null);
-
-        } catch (IllegalArgumentException e) {
-            assertEquals("Argument must be not null or empty!", e.getMessage());
-        }
-    }
-
-    @Test
-    void Constructor_ValidArgumentFlagWithoutSlash_CorrectFlag() {
-        CmdArgument cmdArg = new CmdArgument("banana");
-        assertEquals("banana", cmdArg.getFlag());
-    }
-
-    @Test
-    void Constructor_ValidArgumentFlagWithSlash_CorrectFlag() {
-        CmdArgument cmdArg = new CmdArgument("/banana");
-        assertEquals("banana", cmdArg.getFlag());
-    }
-
-    @Test
-    void Constructor_ValidArgumentFlagAndNameWithSlash_CorrectFlagAndName() {
-        CmdArgument cmdArg = new CmdArgument("/banana:test");
-        assertEquals("banana", cmdArg.getFlag());
-        assertEquals("test", cmdArg.getName());
-    }
-
-    @Test
-    void Constructor_ValidArgumentFlagAndNameWithoutSlash_CorrectFlagAndName() {
-        CmdArgument cmdArg = new CmdArgument("banana:test");
-        assertEquals("banana", cmdArg.getFlag());
-        assertEquals("test", cmdArg.getName());
-    }
-
-    @Test
-    void Constructor_IgnoredArgumentFlagAndNameWithSlash_ThrowsException() {
-        try {
-            CmdArgument cmdArg = new CmdArgument("/param:test");
+            CmdArgument cmdArg = new CmdArgument(input);
+            assertTrue(false);
         } catch (InvalidParameterException e) {
-            assertEquals("Argument '/param:test' will be ignored", e.getMessage());
+            assertEquals("Argument '" + input + "' will be ignored", e.getMessage());
         }
     }
 
-    @Test
-    void Constructor_IgnoredArgumentFlagAndNameWithoutSlash_ThrowsException() {
-        try {
-            CmdArgument cmdArg = new CmdArgument("param:test");
-        } catch (InvalidParameterException e) {
-            assertEquals("Argument 'param:test' will be ignored", e.getMessage());
+    //getFlag
+    @DisplayName ("getFlag should return the correct Parameter flag")
+    @ParameterizedTest (name = "#{index} getFlag on CmdArgument object with [{0}]")
+    @CsvSource ({"banana, banana", "/apple, apple", "TestiMcTestTest, TestiMcTestTest"})
+    void Constructor_ValidFlagWithoutName_CorrectFlag(String input, String output) {
+        CmdArgument cmdArg = new CmdArgument(input);
+        assertEquals(output, cmdArg.getFlag());
+    }
+
+    //getFlag & getName
+    @DisplayName ("getFlag and getName should return the correct Parameter flag and name")
+    @ParameterizedTest (name = "#{index} getFlag and getName on CmdArgument object with [{0}]")
+    @CsvSource ({"banana:test, banana, test", "/apple:Value, apple, Value", "TestiMcTestTest:empty, TestiMcTestTest, empty"})
+    void Constructor_ValidFlagAndName_CorrectFlagAndName(String input, String expectedFlag, String expectedName) {
+        CmdArgument cmdArg = new CmdArgument(input);
+        assertEquals(expectedFlag, cmdArg.getFlag());
+        assertEquals(expectedName, cmdArg.getName());
+    }
+
+
+    @DisplayName ("getFlag and getName Should return the correct Parameter flag with name and value")
+    @ParameterizedTest (name = "#{index} Create CmdArgument object with [{0}]")
+    @CsvSource ({"/banana:test=value, banana, test, value",
+            "banana:test=value, banana, test, value",
+            "TestiMcTestTest:empty, TestiMcTestTest, empty, null"})
+    void Constructor_ValidArgumentFlagWithNameAndValue_CorrectFlagAndName(String input, String expectedFlag, String expectedName, String expectedValue) {
+        CmdArgument cmdArg = new CmdArgument(input);
+        assertEquals(expectedFlag, cmdArg.getFlag());
+        assertEquals(expectedName, cmdArg.getName());
+        if ("null".equals(expectedValue)) {
+            assertEquals(null, cmdArg.getValue());
+        } else {
+            assertEquals(expectedValue, cmdArg.getValue());
         }
     }
 
-    @Test
-    void Constructor_IgnoredArgumentFlagWithoutSlash_ThrowsException() {
-        try {
-            CmdArgument cmdArg = new CmdArgument("param");
-        } catch (InvalidParameterException e) {
-            assertEquals("Argument 'param' will be ignored", e.getMessage());
-        }
-    }
-
-    @Test
-    void Constructor_IgnoredArgumentFlagWithSlash_ThrowsException() {
-        try {
-            CmdArgument cmdArg = new CmdArgument("/param");
-        } catch (InvalidParameterException e) {
-            assertEquals("Argument '/param' will be ignored", e.getMessage());
-        }
-    }
-
-    @Test
-    void Constructor_ValidArgumentFlagAndNameAndValueWithSlash_CorrectFlagAndName() {
-        CmdArgument cmdArg = new CmdArgument("/banana:test=value");
-        assertEquals("banana", cmdArg.getFlag());
-        assertEquals("test", cmdArg.getName());
-        assertEquals("value", cmdArg.getValue());
-    }
-
-    @Test
-    void Constructor_ValidArgumentFlagAndNameAndValueWithoutSlash_CorrectFlagAndName() {
-        CmdArgument cmdArg = new CmdArgument("banana:test=value");
-        assertEquals("banana", cmdArg.getFlag());
-        assertEquals("test", cmdArg.getName());
-        assertEquals("value", cmdArg.getValue());
-    }
-
-    @Test
-    void Constructor_IgnoredArgumentFlagAndNameAndValueWithSlash_ThrowsException() {
-        try {
-            CmdArgument cmdArg = new CmdArgument("/param:test=value");
-        } catch (InvalidParameterException e) {
-            assertEquals("Argument '/param:test=value' will be ignored", e.getMessage());
-        }
-    }
-
-    @Test
-    void Constructor_IgnoredArgumentFlagAndNameAndValueWithoutSlash_ThrowsException() {
-        try {
-            CmdArgument cmdArg = new CmdArgument("param:test=value");
-        } catch (InvalidParameterException e) {
-            assertEquals("Argument 'param:test=value' will be ignored", e.getMessage());
-        }
-    }
 
     ///isIgnored
-
-    @Test
-    void isIgnored_EmptyString_ThrowsIllegalArgumentException() {
+    @DisplayName ("isIgnored should throw an IllegalArgumentException if Input is null, empty or space")
+    @ParameterizedTest (name = "#{index} isIgnored with input: [{0}]")
+    @ValueSource (strings = {"", "null", " "})
+    void isIgnored_InvalidInput_ThrowsIllegalArgumentException(String input) {
         try {
-            CmdArgument.isIgnored("");
+            if ("null".equals(input)) {
+                CmdArgument.isIgnored(null);
+            } else {
+                CmdArgument.isIgnored(input);
+            }
+            assertTrue(false);
         } catch (IllegalArgumentException e) {
             assertEquals("Argument must be not null or empty!", e.getMessage());
         }
     }
 
-    @Test
-    void isIgnored_NULL_ThrowsIllegalArgumentException() {
-        try {
-            CmdArgument.isIgnored(null);
-        } catch (IllegalArgumentException e) {
-            assertEquals("Argument must be not null or empty!", e.getMessage());
-        }
-    }
-
-    @Test
-    void isIgnored_InvalidArgumentParam_True() {
-        boolean result = CmdArgument.isIgnored("param");
+    @DisplayName ("isIgnored should return true if flag is in ignore list")
+    @ParameterizedTest (name = "#{index} isIgnored with input: [{0}]")
+    @ValueSource (strings = {"param", "pa",
+            "listconfigparams", "lcp",
+            "reportfile", "rf",
+            "zipreport", "zr",
+            "junit", "ju",
+            "listglobalparams", "lp",
+            "listtestcaseparams", "ltcpa",
+            "runconfig", "rc",
+            "testrail", "truser", "trpass", "trrunid", "trrunname"
+    })
+    void isIgnored_IgnoredParam_True(String input) {
+        boolean result = CmdArgument.isIgnored(input);
         assertTrue(result);
     }
 
-    @Test
-    void isIgnored_InvalidArgumentPa_True() {
-        boolean result = CmdArgument.isIgnored("pa");
-        assertTrue(result);
-    }
-
-
-    @Test
-    void isIgnored_InvalidArgumentListConfigParams_True() {
-        boolean result = CmdArgument.isIgnored("listconfigparams");
-        assertTrue(result);
-    }
-
-    @Test
-    void isIgnored_InvalidArgumentLcp_True() {
-        boolean result = CmdArgument.isIgnored("lcp");
-        assertTrue(result);
-    }
-
-    @Test
-    void isIgnored_param_true() {
-        boolean result = CmdArgument.isIgnored("param");
-        assertTrue(result);
-    }
-
-    @Test
-    void isIgnored_pa_true() {
-        boolean result = CmdArgument.isIgnored("pa");
-        assertTrue(result);
-    }
-
-    @Test
-    void isIgnored_banana_false() {
-        boolean result = CmdArgument.isIgnored("banana");
-        assertFalse(result);
-    }
-
-    @Test
-    void isIgnored_ArgumentWithColon_false() {
-        boolean result = CmdArgument.isIgnored("/banana:");
-        assertFalse(result);
-    }
-
-    @Test
-    void isIgnored_ArgumentWithColonAndName_false() {
-        boolean result = CmdArgument.isIgnored("/banana:Name");
-        assertFalse(result);
-    }
-
-    @Test
-    void isIgnored_ArgumentWithColonAndNameAndEqual_false() {
-        boolean result = CmdArgument.isIgnored("/banana:Name=");
-        assertFalse(result);
-    }
-
-    @Test
-    void isIgnored_ArgumentWithColonAndNameAndEqualAndValue_false() {
-        boolean result = CmdArgument.isIgnored("/banana:Name=Value");
-        assertFalse(result);
-    }
-
-    @Test
-    void isIgnored_InvalidArgumentReportFile_True() {
-        boolean result = CmdArgument.isIgnored("reportfile");
-        assertTrue(result);
-    }
-
-    @Test
-    void isIgnored_InvalidArgumentRf_True() {
-        boolean result = CmdArgument.isIgnored("rf");
-        assertTrue(result);
-    }
-
-    @Test
-    void isIgnored_InvalidArgumentZipReport_True() {
-        boolean result = CmdArgument.isIgnored("zipreport");
-        assertTrue(result);
-    }
-
-    @Test
-    void isIgnored_InvalidArgumentZr_True() {
-        boolean result = CmdArgument.isIgnored("zr");
-        assertTrue(result);
-    }
-
-    @Test
-    void isIgnored_InvalidArgumentJunit_True() {
-        boolean result = CmdArgument.isIgnored("junit");
-        assertTrue(result);
-    }
-
-    @Test
-    void isIgnored_InvalidArgumentJu_True() {
-        boolean result = CmdArgument.isIgnored("ju");
-        assertTrue(result);
-    }
-
-    @Test
-    void isIgnored_InvalidArgumentListGlobalParams_True() {
-        boolean result = CmdArgument.isIgnored("listglobalparams");
-        assertTrue(result);
-    }
-
-    @Test
-    void isIgnored_InvalidArgumentLp_True() {
-        boolean result = CmdArgument.isIgnored("lp");
-        assertTrue(result);
-    }
-
-    @Test
-    void isIgnored_InvalidArgumentListTestCaseParams_True() {
-        boolean result = CmdArgument.isIgnored("listtestcaseparams");
-        assertTrue(result);
-    }
-
-    @Test
-    void isIgnored_InvalidArgumentLtcpa_True() {
-        boolean result = CmdArgument.isIgnored("ltcpa");
-        assertTrue(result);
-    }
-
-    @Test
-    void isIgnored_InvalidArgumentRunConfig_True() {
-        boolean result = CmdArgument.isIgnored("runconfig");
-        assertTrue(result);
-    }
-
-    @Test
-    void isIgnored_InvalidArgumentRc_True() {
-        boolean result = CmdArgument.isIgnored("rc");
-        assertTrue(result);
-    }
-
-    @Test
-    void isIgnored_InvalidArgumentTestRail_True() {
-        boolean result = CmdArgument.isIgnored("testrail");
-        assertTrue(result);
-    }
-
-    @Test
-    void isIgnored_InvalidArgumentTrUser_True() {
-        boolean result = CmdArgument.isIgnored("truser");
-        assertTrue(result);
-    }
-
-    @Test
-    void isIgnored_InvalidArgumentTrPass_True() {
-        boolean result = CmdArgument.isIgnored("trpass");
-        assertTrue(result);
-    }
-
-    @Test
-    void isIgnored_InvalidArgumentTrRunId_True() {
-        boolean result = CmdArgument.isIgnored("trrunid");
-        assertTrue(result);
-    }
-
-    @Test
-    void isIgnored_InvalidArgumentTrRunName_True() {
-        boolean result = CmdArgument.isIgnored("trrunname");
-        assertTrue(result);
-    }
-
-    @Test
-    void isIgnored_Ep_False() {
-        boolean result = CmdArgument.isIgnored("ep");
-        assertFalse(result);
-    }
-
-    @Test
-    void isIgnored_Endpointconfig_false() {
-        boolean result = CmdArgument.isIgnored("endpointconfig");
-        assertFalse(result);
-    }
-
-    @Test
-    void isIgnored_Epc_False() {
-        boolean result = CmdArgument.isIgnored("epc");
-        assertFalse(result);
-    }
-
-    @Test
-    void isIgnored_Endpointconfigfilepath_False() {
-        boolean result = CmdArgument.isIgnored("endpointconfigfilepath");
-        assertFalse(result);
-    }
-
-    @Test
-    void isIgnored_Epcfp_False() {
-        boolean result = CmdArgument.isIgnored("epcfp");
-        assertFalse(result);
-    }
-
-    @Test
-    void isIgnored_ReportLevel_False() {
-        boolean result = CmdArgument.isIgnored("reportlevel");
-        assertFalse(result);
-    }
-
-    @Test
-    void isIgnored_Rl_False() {
-        boolean result = CmdArgument.isIgnored("rl");
-        assertFalse(result);
-    }
-
-    @Test
-    void isIgnored_Testsuite_False() {
-        boolean result = CmdArgument.isIgnored("testsuite");
-        assertFalse(result);
-    }
-
-    @Test
-    void isIgnored_Ts_False() {
-        boolean result = CmdArgument.isIgnored("ts");
-        assertFalse(result);
-    }
-
-    @Test
-    void isIgnored_Module_False() {
-        boolean result = CmdArgument.isIgnored("module");
-        assertFalse(result);
-    }
-
-    @Test
-    void isIgnored_Mo_False() {
-        boolean result = CmdArgument.isIgnored("mo");
-        assertFalse(result);
-    }
-
-    @Test
-    void isIgnored_Testcaseparam_False() {
-        boolean result = CmdArgument.isIgnored("testcaseparam");
-        assertFalse(result);
-    }
-
-    @Test
-    void isIgnored_Testcontainerparam_False() {
-        boolean result = CmdArgument.isIgnored("testcontainerparam");
-        assertFalse(result);
-    }
-
-    @Test
-    void isIgnored_Tcpa_False() {
-        boolean result = CmdArgument.isIgnored("tcpa");
-        assertFalse(result);
-    }
-
-    @Test
-    void isIgnored_Runlabel_False() {
-        boolean result = CmdArgument.isIgnored("runlabel");
-        assertFalse(result);
-    }
-
-    @Test
-    void isIgnored_Rul_False() {
-        boolean result = CmdArgument.isIgnored("rul");
-        assertFalse(result);
-    }
-
-    @Test
-    void isIgnored_Testcasedatarange_False() {
-        boolean result = CmdArgument.isIgnored("testcasedatarange");
-        assertFalse(result);
-    }
-
-    @Test
-    void isIgnored_Testcontainerdatarange_False() {
-        boolean result = CmdArgument.isIgnored("testcontainerdatarange");
-        assertFalse(result);
-    }
-
-    @Test
-    void isIgnored_Tcdr_False() {
-        boolean result = CmdArgument.isIgnored("tcdr");
+    @DisplayName ("isIgnored should return false if flag is not in ignore list")
+    @ParameterizedTest (name = "#{index} isIgnored with input: [{0}]")
+    @ValueSource (strings = {"banana", "/banana:", "/banana:name", "/banana:name=", "/banana:Name=Value",
+            "ep", "endpointconfig",
+            "epc", "endpointconfigfilepath", "epcfp",
+            "reportlevel", "rl",
+            "testsuite", "ts",
+            "module", "mo",
+            "testcaseparam", "testcontainerparam", "tcpa",
+            "runlabel",
+            "rul", "testcasedatarange",
+            "testcontainerdatarange", "tcdr"})
+    void isIgnored_ValidParams_False(String input) {
+        boolean result = CmdArgument.isIgnored(input);
         assertFalse(result);
     }
 
     ///////////trySplitArgument
-    @Test
-    void splitArgumentString_Empty_ThrowsInvalidParameterException() {
+    @DisplayName ("trySplitArgument should throw an IllegalArgumentException if input is null, empty or space")
+    @ParameterizedTest (name = "#{index} trySplitArgument with input [{arguments}]")
+    @ValueSource (strings = {"", "null", " "})
+    void trySplitArgument_InvalidInput_ShouldThrowException(String input) {
         try {
-            CmdArgument.trySplitArgument("");
+            if ("null".equals(input)) {
+                CmdArgument.trySplitArgument(null);
+            } else {
+                CmdArgument.trySplitArgument(input);
+            }
+            assertTrue(false);
         } catch (IllegalArgumentException e) {
             assertEquals("Cannot split empty string", e.getMessage());
         }
     }
 
-    @Test
-    void splitArgumentString_NULL_ThrowsInvalidParameterException() {
-        try {
-            CmdArgument.trySplitArgument(null);
-        } catch (IllegalArgumentException e) {
-            assertEquals("Cannot split empty string", e.getMessage());
+    @DisplayName ("trySplitArgument should split argument successfully")
+    @ParameterizedTest (name = "#{index} trySplitArgument with input [{0}]")
+    @CsvSource ({"/rul:MyRunLabel, 2, rul, MyRunLabel, ",
+            "/testcaseparam:MyParam=MyValue, 3, testcaseparam, MyParam, MyValue"})
+    void splitArgumentString_CorrectFlagWithName_SplitArguments(String input, int expectedLength, String expectedFlag, String expectedName, String expectedValue) {
+        String[] splitArgs = CmdArgument.trySplitArgument(input);
+        assertEquals(expectedLength, splitArgs.length);
+        assertEquals(expectedFlag, splitArgs[0]);
+        assertEquals(expectedName, splitArgs[1]);
+        if (expectedLength == 3) {
+            assertEquals(expectedValue, splitArgs[2]);
         }
     }
 
-    @Test
-    void splitArgumentString_IncorrectArgument_ThrowsInvalidParameterException() {
+    @DisplayName ("trySplitargument should throw an InvalidParameterException if the input is not valid")
+    @ParameterizedTest (name = "#{index} trySplitArgument with input [{0}]")
+    @ValueSource (strings = {"/testcaseparam:MyParam=", "/testcaseparam:"})
+    void splitArgumentString_InvalidInput_ThrowsInvalidParameterException(String input) {
         try {
-            CmdArgument.trySplitArgument("NotValid=Value");
+            CmdArgument.trySplitArgument(input);
+            assertTrue(false);
         } catch (InvalidParameterException e) {
-            assertEquals("Argument 'NotValid=Value' is not valid", e.getMessage());
-        }
-    }
-
-    @Test
-    void splitArgumentString_CorrectFlagWithName_SplitArguments() {
-        String[] splitArgs = CmdArgument.trySplitArgument("/rul:MyRunLabel");
-        assertEquals(2, splitArgs.length);
-        assertEquals("rul", splitArgs[0]);
-        assertEquals("MyRunLabel", splitArgs[1]);
-    }
-
-    @Test
-    void splitArgumentString_CorrectFlagWithNameAndValue_SplitArguments() {
-        String[] splitArgs = CmdArgument.trySplitArgument("/testcaseparam:MyParam=MyValue");
-        assertEquals(3, splitArgs.length);
-        assertEquals("testcaseparam", splitArgs[0]);
-        assertEquals("MyParam", splitArgs[1]);
-        assertEquals("MyValue", splitArgs[2]);
-    }
-
-    @Test
-    void splitArgumentString_CorrectFlagWithNameAndValue_Exception() {
-        try {
-            CmdArgument.trySplitArgument("/testcaseparam:MyParam=");
-        } catch (Exception e) {
-            assertEquals("Value must not be null or empty", e.getMessage());
+            assertEquals("Name or Value must not be null or empty", e.getMessage());
         }
     }
 
     ///////////trim
-    @Test
-    void trim_ValidArgument_TrimmedArgument() {
-        CmdArgument cmdarg = new CmdArgument("   /tcdr : testcase = 25    ");
+    @DisplayName ("trim should trim the parts of an argument correctly")
+    @ParameterizedTest (name = "#{index} trim with input [{0}]")
+    @CsvSource ({"   /tcdr : testcase = 25    , tcdr, testcase, 25"})
+    //FixMe: @CsvSource automatically removes heading and trailing spaces, but since there are also spaces between : and =, the test should be OK
+    void trim_ValidArgument_TrimmedArgument(String input, String expectedFlag, String expectedName, String expectedValue) {
+        System.out.println(input);
+        CmdArgument cmdarg = new CmdArgument(input);
         cmdarg.trim();
-        assertEquals("tcdr", cmdarg.getFlag());
-        assertEquals("testcase", cmdarg.getName());
-        assertEquals("25", cmdarg.getValue());
+        assertEquals(expectedFlag, cmdarg.getFlag());
+        assertEquals(expectedName, cmdarg.getName());
+        assertEquals(expectedValue, cmdarg.getValue());
 
     }
-
 
     ////TryExtractFlag
-
-    @Test
-    void tryExtractFlag_EmptyString_ThrowsIllegalArgumentException() {
+    @DisplayName ("tryExctractFlag should throw an IllegalArgumentException if input is null, empty or space")
+    @ParameterizedTest (name = "#{index} tryExctractFlag with input [{arguments}]")
+    @ValueSource (strings = {"", "null", " "})
+    void tryExtractFlag_InvalidInput_ThrowsIllegalArgumentException(String input) {
         try {
-            CmdArgument.tryExtractFlag("");
+            if ("null".equals(input)) {
+                CmdArgument.tryExtractFlag(null);
+            } else {
+                CmdArgument.tryExtractFlag(input);
+            }
+            assertTrue(false);
+
         } catch (IllegalArgumentException e) {
             assertEquals("Argument must not be null or empty", e.getMessage());
         }
     }
 
-    @Test
-    void tryExtractFlag_NULL_ThrowsIllegalArgumentException() {
-        try {
-            CmdArgument.tryExtractFlag(null);
-        } catch (IllegalArgumentException e) {
-            assertEquals("Argument must not be null or empty", e.getMessage());
-        }
-    }
-
-    @Test
-    void tryExtractFlag_ArgumentWithSlashAndNoColon_ValidFlag() {
-        String flag = CmdArgument.tryExtractFlag("/ValidFlag");
-        assertEquals("ValidFlag", flag);
-    }
-
-    @Test
-    void tryExtractFlag_ArgumentWithNoSlashAndNoColon_ValidFlag() {
-        String flag = CmdArgument.tryExtractFlag("ValidFlag");
-        assertEquals("ValidFlag", flag);
-    }
-
-    @Test
-    void tryExtractFlag_ArgumentWithSlashAndColon_ValidFlag() {
-        String flag = CmdArgument.tryExtractFlag("/ValidFlag:");
-        assertEquals("ValidFlag", flag);
-    }
-
-    @Test
-    void tryExtractFlag_ArgumentWithNoSlashAndColon_ValidFlag() {
-        String flag = CmdArgument.tryExtractFlag("ValidFlag:");
-        assertEquals("ValidFlag", flag);
-    }
-
-    @Test
-    void tryExtractFlag_ArgumentWithSlashAndColonAndNoEqual_ValidFlag() {
-        String flag = CmdArgument.tryExtractFlag("/ValidFlag:Test");
-        assertEquals("ValidFlag", flag);
-
-    }
-
-    @Test
-    void tryExtractFlag_ArgumentWithNoSlashAndColonAndEqual_ValidFlag() {
-        String flag = CmdArgument.tryExtractFlag("/ValidFlag:Test=");
-        assertEquals("ValidFlag", flag);
-    }
-
-    @Test
-    void tryExtractFlag_ArgumentWithNoSlashAndColonAndEqualAndValue_ValidFlag() {
-        String flag = CmdArgument.tryExtractFlag("/ValidFlag:Test=Value");
-        assertEquals("ValidFlag", flag);
+    @DisplayName ("tryExctractFlag should extract flag successfully")
+    @ParameterizedTest (name = "#{index} tryExctractFlag with input [{0}] expected output: [{1}]")
+    @CsvSource ({"/ValidFlag, ValidFlag",
+            "ValidFlag, ValidFlag",
+            "/ValidFlag:, ValidFlag",
+            "ValidFlag:, ValidFlag",
+            "/ValidFlag:Test, ValidFlag",
+            "/ValidFlag:Test=, ValidFlag",
+            "/ValidFlag:Test=Value, ValidFlag"})
+    void tryExtractFlag_ValidInput_CorrectExtractedFlag(String input, String expectedOutput) {
+        String actualOutput = CmdArgument.tryExtractFlag(input);
+        assertEquals(expectedOutput, actualOutput);
     }
 
     ///toString
