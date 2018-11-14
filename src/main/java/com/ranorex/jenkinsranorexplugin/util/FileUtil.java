@@ -20,6 +20,7 @@ public abstract class FileUtil {
      *
      * @param TestSuiteFile The filepath for the Ranorex Test Suite file
      * @return The filepath for the Ranorex Test Exe file
+     * @Throws InvalidParameterException if the Input is not valid
      */
     public static String getExecutableFromTestSuite(String TestSuiteFile) {
         String ExecutableFile;
@@ -28,7 +29,7 @@ public abstract class FileUtil {
         } else if (TestSuiteFile.contains(".exe")) {
             ExecutableFile = TestSuiteFile;
         } else {
-            return "Input was not a valid Test Suite File";
+            throw new InvalidParameterException("Input '" + TestSuiteFile + "' is not a valid Test Suite File");
         }
 
         String[] splitPath = StringUtil.splitPath(ExecutableFile);
@@ -94,7 +95,7 @@ public abstract class FileUtil {
     }
 
     private static String removeFirstCharacterOfString(String value) {
-        return value.substring(1, value.length());
+        return value.substring(1);
     }
 
     /**
@@ -121,15 +122,17 @@ public abstract class FileUtil {
      * @return The filename without extension
      */
     public static String removeFileExtension(String fileName) {
-        if (! StringUtil.isNullOrSpace(fileName)) {
+        if (StringUtil.isNullOrSpace(fileName)) {
+            throw new InvalidParameterException("Filename cannot be null or empty");
+        } else {
             String fileNameWithoutExtension;
             int position = fileName.lastIndexOf(".");
             if (position > 0) {
                 fileNameWithoutExtension = fileName.substring(0, position);
                 return fileNameWithoutExtension;
             }
+            throw new InvalidParameterException("Filename does not have an extension");
         }
-        return fileName;
     }
 
     /**

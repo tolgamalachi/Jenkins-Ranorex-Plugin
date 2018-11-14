@@ -44,7 +44,7 @@ class CmdArgumentTest {
     @DisplayName ("getFlag should return the correct Parameter flag")
     @ParameterizedTest (name = "#{index} getFlag on CmdArgument object with [{0}]")
     @CsvSource ({"banana, banana", "/apple, apple", "TestiMcTestTest, TestiMcTestTest"})
-    void Constructor_ValidFlagWithoutName_CorrectFlag(String input, String output) {
+    void GetFlag_ValidFlagWithoutName_CorrectFlag(String input, String output) {
         CmdArgument cmdArg = new CmdArgument(input);
         assertEquals(output, cmdArg.getFlag());
     }
@@ -174,8 +174,7 @@ class CmdArgumentTest {
     ///////////trim
     @DisplayName ("trim should trim the parts of an argument correctly")
     @ParameterizedTest (name = "#{index} trim with input [{0}]")
-    @CsvSource ({"   /tcdr : testcase = 25    , tcdr, testcase, 25"})
-    //FixMe: @CsvSource automatically removes heading and trailing spaces, but since there are also spaces between : and =, the test should be OK
+    @CsvSource ({"'   /tcdr : testcase = 25   ', tcdr, testcase, 25"})// ' ' are necessary to avoid trimming the input
     void trim_ValidArgument_TrimmedArgument(String input, String expectedFlag, String expectedName, String expectedValue) {
         System.out.println(input);
         CmdArgument cmdarg = new CmdArgument(input);

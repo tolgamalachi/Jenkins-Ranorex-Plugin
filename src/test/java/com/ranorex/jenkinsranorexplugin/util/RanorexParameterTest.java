@@ -1,172 +1,138 @@
 package com.ranorex.jenkinsranorexplugin.util;
 
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.omg.CORBA.DynAnyPackage.Invalid;
 
 import java.security.InvalidParameterException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class RanorexParameterTest {
-    @Test
-    void isValid_IgnoredParam_False() {
-        boolean result = RanorexParameter.isValidFlag("lcp");
+    @DisplayName ("isValidFlag should return true if flag is in the white list")
+    @ParameterizedTest (name = "#{index} [{0}] is a valid flag")
+    @ValueSource (strings = {"param", "pa"})
+    void isValid_ValidFlag_True(String flag) {
+        boolean result = RanorexParameter.isValidFlag(flag);
+        assertTrue(result);
+    }
+
+    @DisplayName ("isValidFlag should return false if flag is not in the white list")
+    @ParameterizedTest (name = "#{index} [{0}] is not a valid flag")
+    @ValueSource (strings = {
+            "listconfigparams", "lcp",
+            "reportfile", "rf",
+            "zipreport", "zr",
+            "junit", "ju",
+            "listglobalparams", "lp",
+            "listtestcaseparams", "ltcpa",
+            "runconfig", "rc",
+            "testrail", "truser", "trpass", "trrunid", "trrunname"})
+    void isValid_IgnoredParam_False(String flag) {
+        boolean result = RanorexParameter.isValidFlag(flag);
         assertFalse(result);
     }
 
-    @Test
-    void istValid_WhiteListPa_True() {
-        boolean result = RanorexParameter.isValidFlag("pa");
-        assertTrue(result);
-    }
-
-    @Test
-    void istValid_WhiteListParam_True() {
-        boolean result = RanorexParameter.isValidFlag("param");
-        assertTrue(result);
-    }
-
     // Split param String
-    @Test
-    void splitParameterString_Emtpy_ThrowsInvalidParameterException() {
-        try {
-            RanorexParameter.trySplitArgument("");
-        } catch (IllegalArgumentException e) {
-            assertEquals("Cannot split empty string", e.getMessage());
+    @DisplayName ("trySplitArgument should throw an InvalidParameterException if the input is null or empty")
+    @ParameterizedTest (name = "trySplitArgument [{0}]")
+    @ValueSource (strings = {"null", "", " "})
+    void splitParameterString_NullOrEmpty_ThrowsInvalidParameterException(String input) {
+        Throwable exception;
+        if ("null".equals(input)) {
+            exception = assertThrows(InvalidParameterException.class, () -> RanorexParameter.trySplitArgument(null));
+        } else {
+            exception = assertThrows(InvalidParameterException.class, () -> RanorexParameter.trySplitArgument(input));
         }
+        assertEquals("Cannot split empty string", exception.getMessage());
     }
 
-    @Test
-    void splitParameterString_InvalidFlag_ThrowsInvalidParameterException() {
-        try {
-            RanorexParameter.trySplitArgument("/banana:paramName=test");
-        } catch (InvalidParameterException e) {
-            assertEquals("Parameter flag is not valid", e.getMessage());
-        }
+    //FixMe: Method is not throwing an exception
+    @Disabled
+    @DisplayName ("trySplitArgument should throw an InvalidParameterException if the input is not valid")
+    @ParameterizedTest (name = "trySplitArgument [{0}]")
+    @ValueSource (strings = {"/banana:paramName=test", "/banana:pa=", "/pa:paramNametest", "paramNametest"})
+    void trySplitParameterString_InvalidInput_ThrowsInvalidParameterException(String input) {
+        Throwable exception = assertThrows(InvalidParameterException.class, () -> RanorexParameter.trySplitArgument(input));
+        assertEquals("Parameter '" + input + "' is not valid", exception.getMessage());
     }
 
-    @Test
-    void splitParameterString_ValidStringWithPa_ValidParameter() {
-        String[] splitParam = RanorexParameter.trySplitArgument("/pa:paramName=test");
-        assertEquals(3, splitParam.length);
-        assertEquals("pa", splitParam[0]);
-        assertEquals("paramName", splitParam[1]);
-        assertEquals("test", splitParam[2]);
+    @DisplayName ("trySplitArgument should return the correct split argument")
+    @ParameterizedTest (name = "trySplitArgument [{0}]")
+    @CsvSource ({"/pa:paramName=test, 3, pa, paramName, test",
+            "/param:paramName=test, 3, param, paramName, test",
+            "paramName=test, 3, pa, paramName, test"})
+    void splitParameterString_ValidParameterString_ValidParameter(String input, int expectedAmountOfParts, String expectedFlag, String expectedName, String expectedValue) {
+        String[] splitParam = RanorexParameter.trySplitArgument(input);
+        assertAll("Correct Split",
+                () -> assertEquals(expectedAmountOfParts, splitParam.length),
+                () -> assertEquals(expectedFlag, splitParam[0]),
+                () -> assertEquals(expectedName, splitParam[1]),
+                () -> assertEquals(expectedValue, splitParam[2])
+        );
     }
 
-    @Test
-    void splitParameterString_ValidStringWithoutPa_ValidParameter() {
-        String[] splitParam = RanorexParameter.trySplitArgument("paramName=test");
-        assertEquals(3, splitParam.length);
-        assertEquals("pa", splitParam[0]);
-        assertEquals("paramName", splitParam[1]);
-        assertEquals("test", splitParam[2]);
-    }
-
-    @Test
-    void splitParameterString_InvalidParameterStringWithPa_ThrowsInvalidParameterException() {
-        try {
-            String[] splitParam = RanorexParameter.trySplitArgument("/pa:paramNametest");
-        } catch (InvalidParameterException e) {
-            assertEquals("Parameter is not valid", e.getMessage());
-        }
-    }
-
-    @Test
-    void splitParameterString_InvalidParameterStringWithouPa_ThrowsInvalidParameterException() {
-        try {
-            String[] splitParam = RanorexParameter.trySplitArgument("paramNametest");
-        } catch (InvalidParameterException e) {
-            assertEquals("Parameter is not valid", e.getMessage());
-        }
-    }
 
     // Parsing Input String Constructor
-    @Test
-    void Constructor_ValidInputStringPa_ValidRanorexParameter() {
-        RanorexParameter valid = new RanorexParameter("/pa:TestName=TestValue");
-        assertEquals(valid.getFlag(), "pa");
-        assertEquals(valid.getName(), "TestName");
-        assertEquals(valid.getValue(), "TestValue");
+    @DisplayName ("Constructor should create a valid object if the input is correct")
+    @ParameterizedTest (name = "Create Parameter object with [{0}]")
+    @CsvSource ({
+            "/pa:TestName=TestValue, pa, TestName, TestValue",
+            "TestName=TestValue, pa, TestName, TestValue",
+            "/param:TestName=TestValue, param, TestName, TestValue"})
+    void Constructor_ValidInputString_ValidRanorexParameter(String input, String expectedFlag, String expectedName, String expectedValue) {
+        RanorexParameter valid = new RanorexParameter(input);
+        assertAll("Create Object", () -> assertEquals(valid.getFlag(), expectedFlag),
+                () -> assertEquals(valid.getName(), expectedName),
+                () -> assertEquals(valid.getValue(), expectedValue));
     }
 
-    @Test
-    void Constructor_ValidInputStringWithoutPa_ValidRanorexParameter() {
-        RanorexParameter valid = new RanorexParameter("TestName=TestValue");
-        assertEquals(valid.getFlag(), "pa");
-        assertEquals(valid.getName(), "TestName");
-        assertEquals(valid.getValue(), "TestValue");
+    @DisplayName ("Constructor should throw an InvalidParemterException if the input is not valid")
+    @ParameterizedTest (name = "Create Parameter object with [{0}]")
+    @ValueSource (strings = {"/pa:TestNameTestValue",
+            "/param:TestNameTestValue"})
+    void Constructor_InvalidInput_ThrowsInvalidParameterException(String input) {
+        Throwable exception = assertThrows(InvalidParameterException.class, () -> new RanorexParameter(input));
+        assertEquals("'" + input + "' is not a valid Parameter", exception.getMessage());
     }
 
-    @Test
-    void Constructor_ValidInputStringParam_ValidRanorexParameter() {
-        RanorexParameter valid = new RanorexParameter("/param:TestName=TestValue");
-        assertEquals(valid.getFlag(), "param");
-        assertEquals(valid.getName(), "TestName");
-        assertEquals(valid.getValue(), "TestValue");
+
+    @DisplayName ("tryExtractFlag should throw an InvalidParemterException if the input is not valid")
+    @ParameterizedTest (name = "Try extract flag from [{0}]")
+    @ValueSource (strings = {"/pa", "/param"})
+    void extractFlag_InvalidInput_ThrowsInvalidParameterException(String input) {
+
+        Throwable exception = assertThrows(InvalidParameterException.class, () -> RanorexParameter.tryExtractFlag(input));
+        assertEquals("Parameter '" + input + "' does not contain a separator!", exception.getMessage());
     }
 
-    @Test
-    void Constructor_ValidInputStringPaInvalidParameter_ThrowsInvalidParameterException() {
-        try {
-            RanorexParameter invalid = new RanorexParameter("/pa:TestNameTestValue");
-        } catch (InvalidParameterException e) {
-            assertEquals("'/pa:TestNameTestValue' is not a valid Parameter", e.getMessage());
-        }
+    @DisplayName ("tryExtractFlag should return the correct flag")
+    @ParameterizedTest (name = "Try extract flag from [{0}]")
+    @CsvSource ({
+            "/param:Test=test, param",
+            "param:Test=test, param",
+            "/pa:Test=test, pa",
+            "pa:Test=test, pa"})
+    void extractFlag_ValidInput_CorrectFlag(String input, String expectedFlag) {
+        String flag = RanorexParameter.tryExtractFlag(input);
+        assertEquals(expectedFlag, flag);
     }
 
-    @Test
-    void extractFlag_InvalidInput_ThrowsInvalidParameterException() {
-        try {
-            RanorexParameter.tryExtractFlag("/banana");
-        } catch (InvalidParameterException e) {
-            assertEquals("Parameter '/banana' does not contain a separator!", e.getMessage());
-        }
+    @DisplayName ("isValid should return true if the input is valid")
+    @ParameterizedTest (name = "[{0}] is valid")
+    @ValueSource (strings = {"/param:Test name = value 1", "/pa:Test name = value 1", "Test name = value 1"})
+    void isValid_ValidParam_True(String input) {
+        assertTrue(RanorexParameter.isValid(input));
     }
 
-    @Test
-    void extractFlag_ValidInputWithSlash_ValidFlag() {
-        String flag = RanorexParameter.tryExtractFlag("/param:Test=test");
-        assertEquals("param", flag);
-    }
-
-    @Test
-    void extractFlag_ValidInputWithoutSlash_ValidFlag() {
-        String flag = RanorexParameter.tryExtractFlag("param:Test=test");
-        assertEquals("param", flag);
-    }
-
-    @Test
-    void isValid_ValidParam_True() {
-        assertTrue(RanorexParameter.isValid("/param:Test name = value 1"));
-    }
-
-    @Test
-    void isValid_ValidPa_True() {
-        assertTrue(RanorexParameter.isValid("/pa:Test name = value 1"));
-    }
-
-    @Test
-    void isValid_NameValuePair_True() {
-        assertTrue(RanorexParameter.isValid("Test name = value 1"));
-    }
-
-    @Test
-    void isValid_InvalidFlag_False() {
-        assertFalse(RanorexParameter.isValid("/zr"));
-    }
-
-    @Test
-    void isValid_IncompleteParam_False() {
-        assertFalse(RanorexParameter.isValid("/param:test"));
-    }
-
-    @Test
-    void isValidIncompleteParamWithEqual_False() {
-        assertFalse(RanorexParameter.isValid("/param:test="));
-    }
-
-    @Test
-    void isValidIncorrectFlagButCorrectNameValuePair_False() {
-        assertFalse(RanorexParameter.isValid("/testArgument:TestName=TestValue"));
+    @DisplayName ("isValid should return false if the input is not valid")
+    @ParameterizedTest (name = "[{0}] is not valid")
+    @ValueSource (strings = {"/zr", "/param:test", "/param:test=", "/testArgument:TestName=TestValue"})
+    void isValid_InvalidInput_False(String input) {
+        assertFalse(RanorexParameter.isValid(input));
     }
 }

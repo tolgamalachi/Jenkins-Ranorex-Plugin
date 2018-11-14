@@ -26,7 +26,12 @@ public class RanorexReport {
         //this.ReportDirectory = StringUtil.appendBackslash(this.ReportDirectory);
 
         if (! StringUtil.isNullOrSpace(ReportName)) {
-            this.ReportName = FileUtil.removeFileExtension(ReportName);
+            try {
+                this.ReportName = FileUtil.removeFileExtension(ReportName);
+            } catch (InvalidParameterException e) {
+                this.ReportName = ReportName;
+                System.out.println("Nothing to remove here");
+            }
         } else {
             this.ReportName = "%S_%Y_%M%D_%T";
         }
@@ -75,7 +80,7 @@ public class RanorexReport {
     }
 
     public String getFullCompressedReportArgument() {
-        return this.CompressedReportDirectory.getPath()+"\\" + this.CompressedReportName + "." + ZIPPED_REPORT_EXTENSION;
+        return this.CompressedReportDirectory.getPath() + "\\" + this.CompressedReportName + "." + ZIPPED_REPORT_EXTENSION;
     }
 
     public Boolean getJunitReport() {
@@ -84,5 +89,13 @@ public class RanorexReport {
 
     public Boolean getCompressedReport() {
         return CompressedReport;
+    }
+
+    public String getReportDirectory() {
+        return ReportDirectory.getPath();
+    }
+
+    public String getReportName() {
+        return ReportName;
     }
 }
