@@ -252,11 +252,12 @@ public class RanorexRunnerBuilder extends Builder {
                     LOGGER.print(rxTest);
                     LOGGER.println("*************End of Ranorex Summary*************\n");
                 }
+
+                jArguments = rxTest.toExecutionArguments();
+                r = exec(build, launcher, listener, env); // Start the given exe file with all arguments added before
             } catch (Exception e) {
                 LOGGER.println("[ERROR]: " + e.getMessage());
             }
-            jArguments = rxTest.toExecutionArguments();
-            r = exec(build, launcher, listener, env); // Start the given exe file with all arguments added before
         } else {
             LOGGER.println("ERROR: Please specify a Ranorex Test Executable");
         }
