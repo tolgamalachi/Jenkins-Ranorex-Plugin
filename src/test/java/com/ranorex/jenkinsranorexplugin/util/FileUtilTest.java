@@ -1,7 +1,14 @@
 package com.ranorex.jenkinsranorexplugin.util;
 
 import hudson.FilePath;
+import hudson.model.UpdateCenter;
+import org.junit.Assert;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
 import java.security.InvalidParameterException;
@@ -32,269 +39,142 @@ class FileUtilTest {
     private final String _absoluteJenkinsJobWithSpace = _jenkinsWorkSpaceWithSpace + _jenkinsJobNameWithSpace; //"C:\\Users\\us er\\.jenkins\\workspace\\Test Job with Space"
 
 
-    @Test
-    void GetExecutableFromTestSuite_TestSuiteWithoutSpace_ExeWithoutSpace() {
-        String actualResult = FileUtil.getExecutableFromTestSuite(_testSuiteFileWithoutSpace);
-        assertEquals(_testExeFileWithoutSpace, actualResult);
+    @DisplayName ("GetExecutableFromTestSuite should return correct .exe file")
+    @ParameterizedTest (name = "#{index} Get Exe from [{0}]")
+    @CsvSource ({"TestSuite.rxtst, TestSuite.exe",
+            "Test Suite.rxtst, Test Suite.exe",
+            "TestSuite.exe, TestSuite.exe",
+            "Test Suite.exe,Test Suite.exe"})
+    void GetExecutableFromTestSuite_ValidInput_CorrectExe(String input, String expectedOutput) {
+        String actualResult = FileUtil.getExecutableFromTestSuite(input);
+        assertEquals(expectedOutput, actualResult);
     }
 
-    @Test
-    void GetExecutableFromTestSuite_TestSuiteWithSpace_ExeWithSpace() {
-        String actualResult = FileUtil.getExecutableFromTestSuite(_testSuiteFileWithSpace);
-        assertEquals(_testExeFileWithSpace, actualResult);
+    @DisplayName ("GetExecutableFromTestSuite should throw an exception if the input is not correct")
+    @ParameterizedTest (name = "#{index} Get Exe from [{0}]")
+    @ValueSource (strings = {"TestSuite.xyz", "Test Suite.xyz"})
+    void GetExecutableFromTestSuite_InvalidInput_ThrowsException(String input) {
+        String expectedResult = "Input '" + input + "' is not a valid Test Suite File";
+        Throwable exception = assertThrows(InvalidParameterException.class, () -> FileUtil.getExecutableFromTestSuite(input));
+        assertEquals(expectedResult, exception.getMessage());
     }
 
-    @Test
-    void GetExecutableFromTestSuite_ExeWithoutSpace_ExeWithoutSpace() {
-        String actualResult = FileUtil.getExecutableFromTestSuite(_testExeFileWithoutSpace);
-        assertEquals(_testExeFileWithoutSpace, actualResult);
-    }
-
-    @Test
-    void GetExecutableFromTestSuite_ExeWithSpace_ExeWithSpace() {
-        String actualResult = FileUtil.getExecutableFromTestSuite(_testExeFileWithSpace);
-        assertEquals(_testExeFileWithSpace, actualResult);
-    }
-
-
-    @Test
-    void GetExecutableFromTestSuite_InvalidTestSuiteWithoutSpace_ErrorMessage() {
-        String expectedResult = "Input was not a valid Test Suite File";
-        String _invalidTestSuiteFileWithoutSpace = "TestSuite.xyz";
-        String actualResult = FileUtil.getExecutableFromTestSuite(_invalidTestSuiteFileWithoutSpace);
-        assertEquals(expectedResult, actualResult);
-    }
-
-
-    @Test
-    void GetExecutableFromTestSuite_InvalidTestSuiteWithSpace_ErrorMessage() {
-        String expectedResult = "Input was not a valid Test Suite File";
-        String _invalidTestSuiteFileWithSpace = "Test Suite.xyz";
-        String actualResult = FileUtil.getExecutableFromTestSuite(_invalidTestSuiteFileWithSpace);
-        assertEquals(expectedResult, actualResult);
-    }
-
-
-    @Test
-    void GetRanorexWorkingDirectory_RelativeTestSuitePathWithoutSpace_AbsoluteTestSuitePathWithoutSpace() {
-        FilePath JenkinsJobDirectory = new FilePath(new File(_absoluteJenkinsJobWithoutSpace));
-        String relativeTestExePath = _relativeDirectoryWithDotWithoutSpace + _testExeFileWithoutSpace;
-        String _absoluteTestSuiteDirectoryInJenkinsWorkSpaceWithoutSpace = _absoluteJenkinsJobWithoutSpace + "\\bin\\Debug";
-        FilePath expectedResult = new FilePath(new File(_absoluteTestSuiteDirectoryInJenkinsWorkSpaceWithoutSpace));
+    @DisplayName ("GetRanorexWorkingDirectory should return correct directory")
+    @ParameterizedTest (name = "#{index} Get Ranorex Working Directory from [{0}, {1}]")
+    @CsvSource ({
+            "C:\\Users\\user\\.jenkins\\workspace\\TestJobWithOutSpace, .\\bin\\Debug\\TestExe.exe,C:\\Users\\user\\.jenkins\\workspace\\TestJobWithOutSpace\\bin\\Debug\\",
+            "C:\\Users\\user\\.jenkins\\workspace\\Test Job With Space, .\\bin\\De b ug\\Test Exe.exe,C:\\Users\\user\\.jenkins\\workspace\\Test Job With Space\\bin\\De b ug\\",
+            "C:\\Users\\user\\.jenkins\\workspace\\TestJobWithOutSpace, C:\\AbsoluteWithoutSpace\\bin\\Debug\\TestExe.exe,C:\\AbsoluteWithoutSpace\\bin\\Debug\\",
+            "C:\\Users\\user\\.jenkins\\workspace\\Test Job With Space, C:\\Absolute With Space\\bin\\De bug\\Test Exe.exe,C:\\Absolute With Space\\bin\\De bug\\",
+    })
+    void GetRanorexWorkingDirectory_RelativeTestSuitePathWithoutSpace_AbsoluteTestSuitePathWithoutSpace(String JenkinsJobDirectoryInput, String relativeTestExePath, String expectedTestSuitePath) {
+        FilePath JenkinsJobDirectory = new FilePath(new File(JenkinsJobDirectoryInput));
+        FilePath expectedResult = new FilePath(new File(expectedTestSuitePath));
         FilePath actualResult = FileUtil.getRanorexWorkingDirectory(JenkinsJobDirectory, relativeTestExePath);
         assertEquals(expectedResult, actualResult);
     }
 
-
-    @Test
-    void GetRanorexWorkingDirectory_RelativeTestSuitePathWithSpace_AbsoluteTestSuitePathWithSpace() {
-        FilePath JenkinsJobDirectory = new FilePath(new File(_absoluteJenkinsJobWithSpace));
-        String relativeTestExePath = _relativeDirectoryWithDotWithSpace + _testExeFileWithSpace;
-        String _absoluteTestSuiteDirectoryInJenkinsWorkSpaceWithSpace = _absoluteJenkinsJobWithSpace + "\\bin\\De b ug";
-        FilePath expectedResult = new FilePath(new File(_absoluteTestSuiteDirectoryInJenkinsWorkSpaceWithSpace));
-        FilePath actualResult = FileUtil.getRanorexWorkingDirectory(JenkinsJobDirectory, relativeTestExePath);
-        assertEquals(expectedResult, actualResult);
-
-    }
-
-    @Test
-    void GetRanorexWorkingDirectory_AbsoluteTestSuitePathWithoutSpace_AbsoluteTestSuitePathWithoutSpace() {
-        FilePath jenkinsDirectory = new FilePath(new File(_absoluteJenkinsJobWithoutSpace));
-        String absoluteTestExePath = _absoluteTestSuiteDirectoryOutsideJenkinsWithoutSpace + _testExeFileWithoutSpace;
-        FilePath expectedResult = new FilePath(new File(_absoluteTestSuiteDirectoryOutsideJenkinsWithoutSpace));
-        FilePath actualResult = FileUtil.getRanorexWorkingDirectory(jenkinsDirectory, absoluteTestExePath);
-        assertEquals(expectedResult, actualResult);
-
-    }
-
-
-    @Test
-    void GetRanorexWorkingDirectory_AbsoluteTestSuitePathWithSpace_AbsoluteTestSuitePathWithSpace() {
-        FilePath jenkinsDirectory = new FilePath(new File(_absoluteJenkinsJobWithSpace));
-        String absoluteTestExePath = _absoluteTestSuiteDirectoryOutsideJenkinsWithSpace + _testExeFileWithSpace;
-        FilePath expectedResult = new FilePath(new File(_absoluteTestSuiteDirectoryOutsideJenkinsWithSpace));
-        FilePath actualResult = FileUtil.getRanorexWorkingDirectory(jenkinsDirectory, absoluteTestExePath);
-        assertEquals(expectedResult, actualResult);
-    }
-
-
-    @Test
-    void IsAbsolutePath_AbsolutePathWithoutSpace_True() {
-        boolean actualResult = FileUtil.isAbsolutePath(_absoluteTestSuiteDirectoryOutsideJenkinsWithoutSpace);
+    @DisplayName ("IsAbsolutePath should return true if Input is an Absolute Path")
+    @ParameterizedTest (name = "#{index} [{0}] is an absolute path")
+    @ValueSource (strings = {"C:\\Temp\\", "C:\\ T e m p\\"})
+    void IsAbsolutePath_AbsolutePath_True(String input) {
+        boolean actualResult = FileUtil.isAbsolutePath(input);
         assertTrue(actualResult);
     }
 
-
-    @Test
-    void IsAbsolutePath_AbsolutePathWithSpace_True() {
-        boolean actualResult = FileUtil.isAbsolutePath(_absoluteTestSuiteDirectoryOutsideJenkinsWithSpace);
-        assertTrue(actualResult);
-    }
-
-    @Test
-    void isAbsolutePath_RelativePath_False() {
-        boolean result = FileUtil.isAbsolutePath("./Test/banana.exe");
+    @DisplayName ("IsAbsolutePath should return false if Input is not an Absolute Path")
+    @ParameterizedTest (name = "#{index} [{0}] is not an absolute path")
+    @ValueSource (strings = {"./Test/banana.exe", "", ".\\bin\\Debug\\", ".\\bin\\De b ug\\"})
+    void isAbsolutePath_RelativePath_False(String input) {
+        boolean result = FileUtil.isAbsolutePath(input);
         assertFalse(result);
     }
 
-    @Test
-    void isAbsolutePath_EmptyString_False() {
-        assertFalse(FileUtil.isAbsolutePath(""));
+    @DisplayName ("CombinePath should return the correct combined path")
+    @ParameterizedTest (name = "#{index} Combine [{0}] with [{1}]")
+    @CsvSource ({
+            "C:\\Temp, .\\bin\\Debug\\, C:\\Temp\\bin\\Debug\\",
+            "C:\\Temp\\, \\bin\\Debug\\, C:\\Temp\\bin\\Debug\\",
+            "C:\\Temp\\, .\\bin\\Debug\\, C:\\Temp\\bin\\Debug\\",
+            "C:\\Temp Directory\\, bin\\De b ug\\, C:\\Temp Directory\\bin\\De b ug\\",
+            "C:\\Temp Directory\\, .\\bin\\De b ug\\, C:\\Temp Directory\\bin\\De b ug\\,",
+            "C:\\Temp Directory\\, \\bin\\D e b u g\\, C:\\Temp Directory\\bin\\D e b u g\\"
+
+    })
+    void CombinePath_ValidInput_AbsolutePath(String BasePath, String relativePath, String expectedCombinedPath) {
+        String actualCombinedPath = FileUtil.combinePath(BasePath, relativePath);
+        assertEquals(expectedCombinedPath, actualCombinedPath);
     }
 
-
-    @Test
-    void IsAbsolutePath_RelativePathWithoutSpace_False() {
-        boolean actualResult = FileUtil.isAbsolutePath(_relativeDirectoryWithDotWithoutSpace);
-        assertFalse(actualResult);
+    @DisplayName ("GetAbsoluteReportDirectory should return the correct Absolute Directory")
+    @ParameterizedTest (name = "#{index} Combine [{0}] with [{1}]")
+    @CsvSource ({
+            "C:\\Temp\\, C:\\Temp\\, C:\\Temp\\",
+            "C:\\Temp Directory\\, C:\\Temp Directory\\, C:\\Temp Directory\\",
+            "C:\\Temp Directory, .\\Test\\Banana, C:\\Temp Directory\\Test\\Banana",
+            "C:\\Temp Directory, .\\Te st\\Ban ana, C:\\Temp Directory\\Te st\\Ban ana",
+            "\\bin\\D e b u g\\, C:\\Temp Directory\\,  C:\\Temp Directory\\",})
+    void GetAbsoluteReportDirectory_ValidInput_AbsolutePath(String Basepath, String ReportDirectory, String expectedReportDirectory) {
+        String actualReportDirectory = FileUtil.getAbsoluteReportDirectory(Basepath, ReportDirectory);
+        assertEquals(expectedReportDirectory, actualReportDirectory);
     }
 
-
-    @Test
-    void IsAbsolutePath_RelativePathWithSpace_False() {
-        boolean actualResult = FileUtil.isAbsolutePath(_relativeDirectoryWithDotWithSpace);
-        assertFalse(actualResult);
+    @DisplayName ("IgnoreFileExtension should return the correct Filename without File extension")
+    @ParameterizedTest (name = "#{index} Remove extension from [{0}]")
+    @CsvSource ({
+            "RanorexReport.rxzlog, RanorexReport",
+            "Ranorex Rep ort.rxzlog,Ranorex Rep ort"})
+    void IgnoreFileExtension_ValidFileNameWithoutSpaceWithZippedExtension_ValidFileNameWithoutSpaceWithoutExtension(String inputFileName, String expectedFileName) {
+        String actualFileName = FileUtil.removeFileExtension(inputFileName);
+        assertEquals(expectedFileName, actualFileName);
     }
 
-
-    @Test
-    void CombinePath_AbsoluePathWithDotWithoutSpace_AbsolutePathWithoutDotWithoutSpace() {
-        String expectedResult = "C:\\Temp\\bin\\Debug\\";
-        String actualResult = FileUtil.combinePath(_absoluteTestSuiteDirectoryOutsideJenkinsWithoutSpace, _relativeDirectoryWithDotWithoutSpace);
-        assertEquals(expectedResult, actualResult);
-    }
-
-
-    @Test
-    void CombinePath_AbsolutePathWithDotWithSpaceWithoutBackslash_AbsolutePathWithoutDotWithSpace() {
-        String expectedResult = "C:\\Temp Directory\\bin\\De b ug\\";
-        String _absoluteTestSuiteDirectoryOutsideJenkinsWithSpaceWithoutBackslash = "C:\\Temp Directory\\";
-        String actualResult = FileUtil.combinePath(_absoluteTestSuiteDirectoryOutsideJenkinsWithSpaceWithoutBackslash, _relativeDirectoryWithDotWithSpace);
-        assertEquals(expectedResult, actualResult);
-    }
-
-
-    @Test
-    void CombinePath_AbsolutePathWithDotWithoutSpaceWithoutBackslash_AbsolutePathWithoutDotWithoutSpace() {
-        String expectedResult = "C:\\Temp\\bin\\Debug\\";
-        String _absoluteTestSuiteDirectoryOutsideJenkinsWithoutSpaceWithoutBackslash = "C:\\Temp";
-        String actualResult = FileUtil.combinePath(_absoluteTestSuiteDirectoryOutsideJenkinsWithoutSpaceWithoutBackslash, _relativeDirectoryWithDotWithoutSpace);
-        assertEquals(expectedResult, actualResult);
-    }
-
-
-    @Test
-    void CombinePath_AbsoluePathWithDotWithSpace_AbsolutePathWithoutDotWithSpace() {
-        String expectedResult = "C:\\Temp Directory\\bin\\De b ug\\";
-        String actualResult = FileUtil.combinePath(_absoluteTestSuiteDirectoryOutsideJenkinsWithSpace, _relativeDirectoryWithDotWithSpace);
-        assertEquals(expectedResult, actualResult);
-    }
-
-
-    @Test
-    void CombinePath_AbsolutePathWithoutDotWithoutSpace_AbsolutePathWithoutDotWithoutSpace() {
-        String expectedResult = "C:\\Temp\\bin\\Debug\\";
-        String actualResult = FileUtil.combinePath(_absoluteTestSuiteDirectoryOutsideJenkinsWithoutSpace, _relativeDirectoryWithouDotWithoutSpace);
-        assertEquals(expectedResult, actualResult);
-    }
-
-    @Test
-    void CombinePath_AbsolutePathWithoutDotWithSpace_AbsolutePathWithoutDotWithSpace() {
-        String expectedResult = "C:\\Temp Directory\\bin\\D e b u g\\";
-        String actualResult = FileUtil.combinePath(_absoluteTestSuiteDirectoryOutsideJenkinsWithSpace, _relativeDirectoryWithoutDotWithSpace);
-        assertEquals(expectedResult, actualResult);
-    }
-
-
-    @Test
-    void GetAbsoluteReportDirectory_AbsolutePathWithoutSpace_AbsolutePathWithoutSpace() {
-        String actualResult = FileUtil.getAbsoluteReportDirectory(_absoluteTestSuiteDirectoryOutsideJenkinsWithoutSpace, _absoluteTestSuiteDirectoryOutsideJenkinsWithoutSpace);
-        assertEquals(_absoluteTestSuiteDirectoryOutsideJenkinsWithoutSpace, actualResult);
-    }
-
-
-    @Test
-    void GetAbsoluteReportDirectory_AbsolutePathWithSpace_AbsolutePathWithSpace() {
-        String actualResult = FileUtil.getAbsoluteReportDirectory(_absoluteTestSuiteDirectoryOutsideJenkinsWithSpace, _absoluteTestSuiteDirectoryOutsideJenkinsWithSpace);
-        assertEquals(_absoluteTestSuiteDirectoryOutsideJenkinsWithSpace, actualResult);
-    }
-
-    @Test
-    void GetAbsoluteReportDirectory_AbsolutePath_() {
-        String actualResult = FileUtil.getAbsoluteReportDirectory(_absoluteTestSuiteDirectoryOutsideJenkinsWithSpace, "./Test/banana");
-        assertEquals(FileUtil.combinePath(_absoluteTestSuiteDirectoryOutsideJenkinsWithSpace, "./Test/banana"), actualResult);
-    }
-
-
-    @Test
-    void GetAbsoluteReportDirectory_RelativePathWithoutSpace_AbsolutePathWithoutSpace() {
-        String actualResult = FileUtil.getAbsoluteReportDirectory(_relativeDirectoryWithouDotWithoutSpace, _absoluteTestSuiteDirectoryOutsideJenkinsWithoutSpace);
-        assertEquals(_absoluteTestSuiteDirectoryOutsideJenkinsWithoutSpace, actualResult);
-    }
-
-
-    @Test
-    void GetAbsoluteReportDirectory_RelativePathWithSpace_AbsolutePathWithSpace() {
-        String actualResult = FileUtil.getAbsoluteReportDirectory(_relativeDirectoryWithoutDotWithSpace, _absoluteTestSuiteDirectoryOutsideJenkinsWithSpace);
-        assertEquals(_absoluteTestSuiteDirectoryOutsideJenkinsWithSpace, actualResult);
-    }
-
-    @Test
-    void IgnoreFileExtension_ValidFileNameWithoutSpaceWithZippedExtension_ValidFileNameWithoutSpaceWithoutExtension() {
-        String _FileNameWithoutSpaceWithZippedExtension = "RanorexReport.rxzlog";
-        String actualResult = FileUtil.removeFileExtension(_FileNameWithoutSpaceWithZippedExtension);
-        String _FileNameWithoutSpaceWithoutExtension = "RanorexReport";
-        assertEquals(_FileNameWithoutSpaceWithoutExtension, actualResult);
-    }
-
-
-    @Test
-    void IgnoreFileExtension_ValidFileNameWithSpaceWithZippedExtension_ValidFileNameWithoutSpaceWithoutExtension() {
-        String _FileNameWithSpaceWithZippedExtension = "Ranorex Rep ort.rxzlog";
-        String actualResult = FileUtil.removeFileExtension(_FileNameWithSpaceWithZippedExtension);
-        String _FileNameWithSpaceWithoutExtension = "Ranorex Rep ort";
-        assertEquals(_FileNameWithSpaceWithoutExtension, actualResult);
-    }
-
-    @Test
-    void IgnoreFileExtension_NULL_NULL() {
-        String actualResult = FileUtil.removeFileExtension(null);
-        assertNull(actualResult);
-    }
-
-
-    @Test
-    void IgnoreFileExtension_SPACE_SPACE() {
-        String actualResult = FileUtil.removeFileExtension(" ");
-        assertEquals(" ", actualResult);
-    }
-
-
-    @Test
-    void IgnoreFileExtension_InvalidFileName_NULL() {
-        String actualResult = FileUtil.removeFileExtension("ThisFileHasNoExtension");
-        assertEquals("ThisFileHasNoExtension", actualResult);
-    }
-
-
-    @Test
-    void getFile_fullPath_ValidFilename() {
-        String result = FileUtil.getFile("C:\\Test\\Test.rxtst");
-        assertEquals("Test.rxtst", result);
-    }
-    @Test
-    void getFile_fullPath2_ValidFilename() {
-        String result = FileUtil.getFile("C:\\Test\\Test");
-        assertEquals("Test", result);
-    }
-
-    @Test
-    void getFile_null_ValidFilename() {
-        try {
-            String result = FileUtil.getFile(null);
-        } catch (InvalidParameterException e) {
-            assertEquals("Path is not valid", e.getMessage());
+    @DisplayName ("IgnoreFileExtension should throw an exception if the input is null or empty")
+    @ParameterizedTest (name = "#{index} ignoreExtension from [{0}]")
+    @ValueSource (strings = {"", "null", " "})
+    void IgnoreFileExtension_NullInput_ThrowsException(String input) {
+        Throwable except;
+        if ("null".equals(input)) {
+            except = assertThrows(InvalidParameterException.class, () -> FileUtil.removeFileExtension(null));
+        } else {
+            except = assertThrows(InvalidParameterException.class, () -> FileUtil.removeFileExtension(input));
         }
+        Assert.assertEquals("Filename cannot be null or empty", except.getMessage());
+    }
 
+    @DisplayName ("IgnoreFileExtension should throw an exception if the file does not have an extension")
+    @ParameterizedTest (name = "#{index} ignoreExtension from [{0}]")
+    @ValueSource (strings = {"Report", "Re Po rt"})
+    void IgnoreFileExtension_InvalidInput_ThrowsException(String input) {
+        Throwable except = assertThrows(InvalidParameterException.class, () -> FileUtil.removeFileExtension(input));
+
+        Assert.assertEquals("Filename does not have an extension", except.getMessage());
+    }
+
+
+    @DisplayName ("GetFile should return the correct filename")
+    @ParameterizedTest (name = "#{index} Get filename from [{0}]")
+    @CsvSource ({
+            "C:\\Test\\Test.rxtst, Test.rxtst",
+            "C:\\Te s t\\Te s t.rxtst, Te s t.rxtst",
+            "Te s t.rxtst, Te s t.rxtst",
+            "Test.rxtst, Test.rxtst",
+            "C:\\Test\\Test, Test"})
+    void getFile_fullPath_ValidFilename(String input, String expectedFileName) {
+        String actualFileName = FileUtil.getFile(input);
+        assertEquals(expectedFileName, actualFileName);
+    }
+
+    @DisplayName ("GetFile should throw an exception if the input is null or empty")
+    @ParameterizedTest (name = "#{index} GetFile from [{0}]")
+    @ValueSource (strings = {"", "null", " "})
+    void getFile_null_ThrowsException(String input) {
+        Throwable exception;
+        if ("null".equals(input)) {
+            exception = assertThrows(InvalidParameterException.class, () -> FileUtil.getFile(null));
+        } else {
+            exception = assertThrows(InvalidParameterException.class, () -> FileUtil.getFile(input));
+        }
+        assertEquals("Path is not valid", exception.getMessage());
     }
 }
