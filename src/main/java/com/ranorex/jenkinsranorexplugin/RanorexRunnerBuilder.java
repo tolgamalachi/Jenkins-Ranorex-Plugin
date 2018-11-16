@@ -200,15 +200,27 @@ public class RanorexRunnerBuilder extends Builder {
 
         if (! StringUtil.isNullOrSpace(rxTestExecutablePath)) {
             try {
-                rxWorkingDirectory = FileUtil.getRanorexWorkingDirectory(build.getWorkspace(), rxTestExecutablePath).getRemote();
+                LOGGER.println("[DEBUG]: rxTestExecutablePath: " + rxTestExecutablePath);
+                LOGGER.println("[DEBUG]: jenkinsWorkspace: '" + build.getWorkspace() + "'");
+
+                try {
+                    rxWorkingDirectory = FileUtil.getRanorexWorkingDirectory(build.getWorkspace(), rxTestExecutablePath).getRemote();
+                } catch (Exception ex) {
+                    LOGGER.println("getRanorexWorkingDirectory threw an " + ex.getClass() + " exception");
+                    LOGGER.println(ex.toString());
+                }
+
+                LOGGER.println("[DEBUG]: rxWorkingDirectory: " + rxWorkingDirectory);
                 rxExecuteableFileName = FileUtil.getFile(rxTestExecutablePath);
+                LOGGER.println("[DEBUG]: rxExecuteableFileName: " + rxExecuteableFileName);
+                LOGGER.println("[DEBUG]: rxTestSuite: " + rxTestSuite);
 
                 rxTest = new RanorexTest(rxWorkingDirectory, rxExecuteableFileName, rxTestSuite);
 
                 if (! StringUtil.isNullOrSpace(rxRunConfiguration)) {
                     rxTest.setRanorexRunConfiguration(rxRunConfiguration);
                 }
-
+                LOGGER.println("[DEBUG]: rxRunConfiguration: " + rxRunConfiguration);
                 RanorexReport rxReport = new RanorexReport(rxWorkingDirectory,
                         rxReportDirectory, rxReportFile, rxReportExtension, rxJUnitReport,
                         rxCompressedReport, rxCompressedReportDirectory, rxCompressedReportFile);
@@ -220,7 +232,7 @@ public class RanorexRunnerBuilder extends Builder {
                             rxTestRailRID, rxTestRailRunName);
                     rxTest.setTestRail(rxTestRail);
                 }
-
+                LOGGER.println("[DEBUG]: useRxTestRail: " + useRxTestRail);
                 if (! StringUtil.isNullOrSpace(rxGlobalParameter)) {
                     for (String param : StringUtil.splitBy(rxGlobalParameter, ARGUMENT_SEPARATOR)) {
                         try {
@@ -256,7 +268,9 @@ public class RanorexRunnerBuilder extends Builder {
                 jArguments = rxTest.toExecutionArguments();
                 r = exec(build, launcher, listener, env); // Start the given exe file with all arguments added before
             } catch (Exception e) {
-                LOGGER.println("[ERROR]: " + e.getMessage());
+                LOGGER.println("[ERROR]: " + e.toString());
+                LOGGER.println("[Damn! ERROR]: " + e.getMessage());
+                LOGGER.println("[ERROR]: " + e.toString());
             }
         } else {
             LOGGER.println("ERROR: Please specify a Ranorex Test Executable");
