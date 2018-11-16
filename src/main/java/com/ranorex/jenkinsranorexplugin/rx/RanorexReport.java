@@ -47,7 +47,12 @@ public class RanorexReport {
 
             //this.CompressedReportDirectory = StringUtil.appendBackslash(this.CompressedReportDirectory);
             if (! StringUtil.isNullOrSpace(CompressedReportName)) {
-                this.CompressedReportName = FileUtil.removeFileExtension(CompressedReportName);
+                try {
+                    this.CompressedReportName = FileUtil.removeFileExtension(CompressedReportName);
+                } catch (InvalidParameterException e) {
+                    this.CompressedReportName = CompressedReportName;
+                    System.out.println("Nothing to remove here");
+                }
             } else {
                 this.CompressedReportName = this.ReportName;
             }
