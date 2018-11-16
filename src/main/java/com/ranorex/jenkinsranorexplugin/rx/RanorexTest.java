@@ -31,9 +31,12 @@ public class RanorexTest {
     public RanorexTest(String WorkingDirectory, String TestExecutable, String TestSuite)
             throws FileNotFoundException, InvalidParameterException {
         this._WorkingDirectory = new File(WorkingDirectory);
+        if(!this._WorkingDirectory.exists())
+            throw new FileNotFoundException("File or directory '" + this._WorkingDirectory.getPath() + "' does not exist");
         if (! this._WorkingDirectory.isDirectory()) {
             throw new InvalidParameterException("'" + this._WorkingDirectory.getPath() + "' is not a valid directory path");
         }
+
 
         if (StringUtil.isNullOrSpace(TestExecutable)) {
             throw new InvalidParameterException("Test executable must not be empty");
@@ -41,7 +44,7 @@ public class RanorexTest {
 
         this._TestExecutable = new File(this._WorkingDirectory, TestExecutable);
         if (! this._TestExecutable.exists()) {
-            throw new FileNotFoundException("File '" + this._TestExecutable.getPath() + "' does not exist");
+            throw new FileNotFoundException("File or directory '" + this._TestExecutable.getPath() + "' does not exist");
         }
 
         //If no Test Suite is specified, Execute Test using the following prio order
@@ -63,7 +66,7 @@ public class RanorexTest {
         } else {
             this._TestSuiteFile = new File(this._TestExecutable.getParent(), TestSuite);
             if (! this._TestSuiteFile.exists()) {
-                throw new FileNotFoundException("File '" + this._TestSuiteFile.getName() + "' does not exist");
+                throw new FileNotFoundException("File or directory '" + this._TestSuiteFile.getPath() + "' does not exist");
             }
         }
         this._UseTestRail = false;
